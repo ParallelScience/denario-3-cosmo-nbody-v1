@@ -1,0 +1,85 @@
+{
+    "sub_tasks": [
+        {
+            "bullet_points": [
+                "Compute the linear matter power spectrum at z=127 using `camb` with the Quijote fiducial cosmology (Ωm=0.3175, Ωb=0.049, h=0.6711, ns=0.9624, σ8=0.834, box=1000 Mpc/h)",
+                "Compute and store the growth rate f(z_init) = d ln D / d ln a and the Hubble parameter H(z_init) analytically from the Friedmann equation using the same cosmological parameters; print the values of a_init, H(z_init), and f(z_init) for verification",
+                "Generate a 512³ Gaussian random field in Fourier space using the computed P(k) and a fixed random seed (seed=0)",
+                "Displace particles from a regular 512³ grid using the Zel'dovich Approximation (ZA) displacement field",
+                "Assign velocities using the ZA velocity field normalized by (a * H(z_init) * f(z_init)), using the analytically computed values",
+                "Save the initial particle positions, velocities, and the cosmological parameters (a_init, H_init, f_init) to the data directory as `.npy` files",
+                "Print key statistics: number of particles, RMS displacement, RMS velocity, min/max positions"
+            ],
+            "sub_task": "Generate Initial Conditions",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Load the initial conditions and cosmological parameters generated in Step 1",
+                "Implement the full Particle-Mesh (PM) gravity solver using NVIDIA Warp kernels for CIC mass assignment and force interpolation; note that Warp 1.13.0 does not expose a native `wp.fft` API, so the FFT-based Poisson solver must use `torch.fft.rfftn` and `torch.fft.irfftn` on GPU tensors (interoperating with Warp arrays via `torch.as_tensor` or direct PyTorch allocation)",
+                "Implement the Poisson solver: convert density to density contrast δ, solve ∇²φ = -4πGρ in Fourier space with explicit handling of the k=0 mode, and compute forces as the gradient of the potential",
+                "Implement a Leapfrog kick-drift-kick integrator with periodic boundary conditions",
+                "Use adaptive time-stepping based on the Courant condition (~50 time steps from z=127 to z=0), tracking the cosmological scale factor via the Friedmann equation",
+                "Save particle snapshots at z=0, 0.5, 1, 2 as `.npy` files",
+                "Record per-step timing breakdown (mass assignment, FFT/Poisson, force interpolation, integration) and save as a structured `.npz` file to the data directory for use in Step 5",
+                "Print per-step timing breakdown, total GPU wall-clock time, and memory usage statistics"
+            ],
+            "sub_task": "Implement and Run the Warp GPU PM Simulation",
+            "sub_task_agent": "engineer",
+            "code_execution_timeout": 1800
+        },
+        {
+            "bullet_points": [
+                "Load the initial conditions from Step 1",
+                "Implement an equivalent PM simulation using only `numpy` and `scipy.fft` (no GPU), using the same CIC mass assignment, FFT-based Poisson solver, force interpolation, and leapfrog integrator logic as the GPU version",
+                "Use `scipy.fft.rfftn` with `workers=-1` (all available CPU threads) for the FFT operations to represent a fair and realistic CPU baseline",
+                "Run for at least 5 benchmark steps to obtain stable average per-step timings",
+                "Record per-step wall-clock time breakdown (mass assignment, FFT, force interpolation, integration)",
+                "Extrapolate total CPU time for the full 50-step simulation",
+                "Save the per-step timing breakdown and extrapolated total time as a `.npz` or `.json` file to the data directory for use in Step 5",
+                "Print detailed timing results and memory usage"
+            ],
+            "sub_task": "Implement and Run the CPU Baseline PM Simulation (Timing Only)",
+            "sub_task_agent": "engineer",
+            "code_execution_timeout": 1800
+        },
+        {
+            "bullet_points": [
+                "Load the z=0 particle snapshot saved by the GPU simulation in Step 2",
+                "Perform CIC density assignment on a 512³ mesh and convert to density contrast δ = (ρ - ρ̄)/ρ̄",
+                "Apply a 3D FFT and compute the power spectrum by averaging |δ(k)|² in radial k-bins",
+                "Deconvolve the CIC window function W(k) = sinc²(kx Δ/2) sinc²(ky Δ/2) sinc²(kz Δ/2) and subtract the shot noise contribution (1/n̄)",
+                "Compute and save the linear theory power spectrum P_linear(k) at z=0 using `camb` with the same cosmological parameters, for inclusion in the three-way comparison plot",
+                "Download the Quijote reference P(k) from the public URL",
+                "Save the computed P(k) arrays (k bins, P_warp, P_quijote, P_linear) to the data directory as `.npy` or `.npz` files",
+                "Print the computed P(k) values at representative k values"
+            ],
+            "sub_task": "Compute Power Spectrum and Download Reference Data",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Load all saved results: P(k) arrays (P_warp, P_quijote, P_linear), GPU and CPU timing data, and z=0 particle snapshot from previous steps",
+                "Generate a multi-panel figure with five subplots: 1. P(k) comparison: P_warp(k), P_quijote(k), and P_linear(k) on the same log-log axes at z=0; 2. P(k) ratio: P_warp(k)/P_quijote(k) vs k with a horizontal band marking ±5% agreement and a vertical line at k=0.3 h/Mpc; 3. Timing breakdown: Bar chart comparing GPU vs CPU average per-step wall-clock times for each PM sub-step (mass assignment, FFT, force interpolation, integration); 4. Speedup: Bar plot showing GPU speedup factor (CPU time / GPU time) per sub-step and total; 5. Density projection: 2D histogram of z=0 particle positions projected along one axis, using a logarithmic color scale, with axes labeled in Mpc/h",
+                "Save the figure as a high-resolution PNG to the data directory",
+                "Print a machine-readable summary table containing: each PM sub-step name, GPU time (s), CPU time (s), and speedup factor; plus the mean and maximum P_warp/P_quijote ratio deviation for k < 0.3 h/Mpc and for 0.3 < k < 1 h/Mpc"
+            ],
+            "sub_task": "Generate All Result Plots and Summary Statistics",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Summarize all quantitative results: total GPU and CPU wall-clock times, per-step timing breakdown, and speedup factors for each PM sub-step and overall",
+                "Interpret the GPU speedup factors against theoretical expectations based on the computational complexity of each PM sub-step: discuss why CIC (memory-bandwidth bound) and FFT (compute-bound) exhibit different speedup characteristics, providing a physically motivated interpretation",
+                "Report the P(k) comparison: describe the three-way agreement among P_warp(k), P_quijote(k), and P_linear(k) across the full k range; specifically state whether the 5% target is met for k < 0.3 h/Mpc using the printed mean and maximum deviation statistics",
+                "Discuss the P(k) ratio plot: identify k ranges where agreement is best and worst, and characterize the transition from linear to non-linear scales",
+                "Include a dedicated paragraph quantifying the expected power spectrum suppression at high-k due to ZA versus 2LPT initial conditions, citing the known result that ZA underestimates small-scale power at z=0 by a predictable amount, and comparing this expectation to the observed ratio P_warp/P_quijote at k > 0.3 h/Mpc",
+                "Analyze additional physical sources of discrepancy: PM resolution limits (Nyquist frequency of the 512³ mesh), finite time-stepping effects, and the single-realization variance versus the Quijote ensemble average",
+                "Reference all generated plots by description (P(k) comparison, ratio, timing, speedup, density projection)",
+                "Provide a qualitative assessment of the simulation's suitability for cosmological inference applications"
+            ],
+            "sub_task": "Write the Full Results Section",
+            "sub_task_agent": "researcher"
+        }
+    ]
+}
