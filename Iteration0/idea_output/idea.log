@@ -1,0 +1,1011 @@
+
+###### PROMPT BEGINS ########
+Human: 
+**Role**: You are a Senior Scientific Researcher.
+**Objective**: Based on the provided dataset description and potential previous ideas, generate 10 distinct, high-impact research ideas for a scientific project. 
+
+**Task**: 
+Generate 10 research ideas that could lead to meaningful scientific discovery. These ideas must be diverse in their approach to the data and must be different to previous existing ideas.
+
+**Operational Constraints**:
+- We are trying to sample the ideas space as widely as possible. Thus, if there are existing ideas, make the 10 ideas as different as possible from the existing ones.
+- The 10 ideas should also be as different from each other as possible.
+- **Conciseness**: Each idea should be 3-4 sentences max. Focus on the "Research Question," not the execution.
+- **No Methodology**: Do not include plans, code, or specific algorithms. Only state the *Research Objective*.
+- **Consistency**: The ideas must strictly adhere to the constraints and physical reality described in the data description.
+- **Zero Redundancy**: If two ideas feel similar, discard one and find a new scientific angle.
+- Each idea must consist of a title and a brief description of it.
+
+Data description:
+# GPU-Accelerated Cosmological N-body Simulation with NVIDIA Warp
+
+## Overview
+
+This project implements a cosmological N-body (PM — Particle-Mesh) simulation using NVIDIA Warp on GPU, then validates it against reference Quijote power spectra. The goal is to quantify both the physical accuracy (P(k) comparison) and the computational speedup vs. equivalent CPU code.
+
+## Simulation Parameters (matching Quijote fiducial)
+
+| Parameter | Value |
+|---|---|
+| Box size | 1000 Mpc/h |
+| N_particles | 512³ = 134,217,728 |
+| Mesh resolution | 512³ (or 1024³) |
+| Cosmology | Planck 2018 fiducial |
+| Ωm | 0.3175 |
+| Ωb | 0.049 |
+| h | 0.6711 |
+| ns | 0.9624 |
+| σ8 | 0.834 |
+| Starting redshift | z_init = 127 |
+| Output redshifts | z = 0, 0.5, 1, 2 |
+| Random seed | 0 (fixed, reproducible) |
+
+## Initial Conditions
+
+ICs are generated on-the-fly using the Zel'dovich Approximation (ZA) / first-order Lagrangian Perturbation Theory:
+1. Compute linear matter power spectrum P(k, z_init) using `camb` with the Quijote fiducial cosmology
+2. Generate a Gaussian random field in Fourier space using P(k) and a fixed random seed
+3. Displace particles from a regular grid using the ZA displacement field
+4. Assign velocities using the ZA velocity field (∇φ / (aH f))
+
+Note: Quijote uses 2LPT (2nd-order LPT) for ICs. Our ZA ICs introduce small differences at high-k that are expected and will be characterized.
+
+## Simulation Code: NVIDIA Warp (GPU)
+
+- **Framework**: NVIDIA Warp 1.13.0 (`warp-lang`)
+- **Device**: NVIDIA RTX PRO 6000 Blackwell (95 GiB VRAM, sm_120, CUDA 13.0)
+- **Method**: Particle-Mesh (PM) — O(N log N) complexity
+  - CIC (Cloud-in-Cell) mass assignment to 512³ mesh
+  - FFT-based Poisson solver: ∇²φ = -4πGρ → φ(k) = -4πGρ(k)/k²
+  - Gradient of potential → forces on particles
+  - Leapfrog integration (kick-drift-kick scheme)
+- **Time stepping**: ~50-100 steps from z=127 to z=0, step size controlled by Courant condition
+
+## Reference Data: Quijote Power Spectra
+
+The Quijote fiducial P(k) at z=0 is publicly available at:
+`https://raw.githubusercontent.com/franciscovillaescusa/Quijote-simulations/master/summary_statistics/Pk/Pk_m_z=0_0.txt`
+
+This provides the non-linear matter power spectrum P(k) averaged over multiple Quijote realizations. The comparison metric is:
+- Ratio P_warp(k) / P_quijote(k) across k range 0.01–1 h/Mpc
+- Target: agreement within 5% for k < 0.3 h/Mpc
+
+## Speedup Benchmark
+
+Compare wall-clock time for:
+- Full PM simulation (512³): Warp GPU vs. equivalent numpy/scipy CPU implementation
+- Per-step breakdown: mass assignment, FFT, force interpolation, integration
+- Memory usage: GPU vs. CPU
+
+## File Paths
+
+All generated files are saved to the project data directory:
+- `/home/node/work/projects/cosmo_nbody_v1/data/` — IC files, snapshot outputs, P(k) outputs
+- No pre-existing input files; everything is generated in-code
+
+## Software Dependencies (all available in /opt/denario-venv)
+
+- `warp-lang==1.13.0` — GPU-accelerated kernels
+- `camb==1.6.6` — linear matter power spectrum
+- `numpy`, `scipy` — FFT, array operations
+- `matplotlib` — plotting
+
+
+
+
+
+
+
+
+Respond in the following format:
+
+\\begin{IDEAS}
+<IDEAS>
+\\end{IDEAS}
+
+In <IDEAS>, put the ideas you have generated. 
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-3.1-flash-lite-preview] ########
+\begin{IDEAS}
+1. **Higher-Order Lagrangian Perturbation Thresholds**: Determine the specific scale $k$ at which the simulation’s ZA-based initial conditions deviate from the Quijote 2LPT reference data beyond 5%. This identifies the "transient memory" of initial condition orders in PM-based cosmological evolution.
+
+2. **GPU-Memory Scaling Laws**: Quantify the relationship between mesh resolution (increasing beyond 512³) and GPU warp occupancy/memory bandwidth saturation. This establishes the theoretical limit of the NVIDIA Blackwell architecture for single-node Particle-Mesh simulations.
+
+3. **Time-Stepping Sensitivity Analysis**: Investigate how varying the Courant-Friedrichs-Lewy (CFL) condition impacts the small-scale power spectrum $P(k)$ at high $k$. This defines the optimal temporal resolution required to capture non-linear growth without introducing artificial numerical damping.
+
+4. **Stochasticity in Force Interpolation**: Analyze the impact of CIC (Cloud-in-Cell) mass assignment noise on the velocity field dispersion compared to higher-order schemes. This isolates the contribution of interpolation noise to the overall power spectrum error budget.
+
+5. **Cosmological Parameter Sensitivity Gradients**: Explore how small perturbations in $\Omega_m$ and $\sigma_8$ manifest in the Warp-based simulation’s $P(k)$ relative to the Quijote fiducial. This provides a baseline for using high-speed Warp simulations in rapid cosmological parameter inference.
+
+6. **Spectral Divergence via FFT Precision**: Compare the $P(k)$ output using single-precision versus mixed-precision FFTs on the Blackwell hardware. This determines if reduced precision significantly biases the non-linear matter distribution or if it is suitable for large-scale structure forecasting.
+
+7. **The "Speed-Accuracy" Pareto Front**: Map the computational cost of the simulation against the accuracy of the $P(k)$ recovery across various mesh resolutions. This defines the optimal "efficiency point" where simulation wall-clock time is minimized while maintaining sub-5% error.
+
+8. **Non-Linear Growth Bias Mapping**: Identify the specific redshift $z$ where the divergence between ZA-generated ICs and 2LPT-based reference data becomes statistically indistinguishable in the $P(k)$ domain. This uncovers the epoch where non-linear gravitational collapse "erases" the initial condition error.
+
+9. **Halo Mass Function (HMF) Discrepancy**: Compare the HMF derived from the Warp simulation against the Quijote reference to determine if PM-based integration accurately captures the abundance of high-mass clusters. This assesses the utility of the Warp framework for precision cluster cosmology.
+
+10. **Memory-Latency Bottleneck Identification**: Decompose the simulation cycle to determine whether the performance bottleneck is dominated by global memory access during particle-to-mesh interpolation or by compute-bound FFT operations. This informs future kernel optimization strategies for N-body codes on Blackwell architecture.
+\end{IDEAS}
+
+
+###### PROMPT BEGINS ########
+Human: 
+**Role**: Senior Scientific Lead and Final Decision Maker.
+**Objective**: Review the ideas prioritized by the three independent Reviewer Agents and select the single most promising research project to proceed to the implementation phase.
+
+**Context**: 
+A pool of 10 initial ideas was generated. Three independent agents have evaluated those ideas and identified their top selections (provided below). Your role is to serve as the final filter, selecting the "Best of the Best" based on scientific merit and the constraints of the dataset.
+
+**Evaluation Criteria**:
+1. **Scientific Consensus**: Does an idea appear as a top choice for multiple reviewers?
+2. **Execution Readiness**: Given the 'Data Description,' which idea is most likely to produce a valid, non-erroneous scientific result?
+3. **Strategic Impact**: Which project offers the most meaningful contribution to the Foundation's research goals?
+4. **Novelty vs Previous Work**: The selected idea should be as different as possible from any previous ideas to ensure new scientific contributions.
+
+**Operational Constraints**:
+- **Selection Only**: You must select exactly one idea.
+- **Strict Fidelity**: Do not modify, rephrase, or correct the original text of the idea. 
+- **Zero Commentary**: Do not justify your decision, provide pros/cons, or offer any introductory text.
+- **Output Integrity**: Provide **only** the text of the selected idea within the required tags.
+- The selected idea must contain a title and a description of the idea
+
+Data description:
+# GPU-Accelerated Cosmological N-body Simulation with NVIDIA Warp
+
+## Overview
+
+This project implements a cosmological N-body (PM — Particle-Mesh) simulation using NVIDIA Warp on GPU, then validates it against reference Quijote power spectra. The goal is to quantify both the physical accuracy (P(k) comparison) and the computational speedup vs. equivalent CPU code.
+
+## Simulation Parameters (matching Quijote fiducial)
+
+| Parameter | Value |
+|---|---|
+| Box size | 1000 Mpc/h |
+| N_particles | 512³ = 134,217,728 |
+| Mesh resolution | 512³ (or 1024³) |
+| Cosmology | Planck 2018 fiducial |
+| Ωm | 0.3175 |
+| Ωb | 0.049 |
+| h | 0.6711 |
+| ns | 0.9624 |
+| σ8 | 0.834 |
+| Starting redshift | z_init = 127 |
+| Output redshifts | z = 0, 0.5, 1, 2 |
+| Random seed | 0 (fixed, reproducible) |
+
+## Initial Conditions
+
+ICs are generated on-the-fly using the Zel'dovich Approximation (ZA) / first-order Lagrangian Perturbation Theory:
+1. Compute linear matter power spectrum P(k, z_init) using `camb` with the Quijote fiducial cosmology
+2. Generate a Gaussian random field in Fourier space using P(k) and a fixed random seed
+3. Displace particles from a regular grid using the ZA displacement field
+4. Assign velocities using the ZA velocity field (∇φ / (aH f))
+
+Note: Quijote uses 2LPT (2nd-order LPT) for ICs. Our ZA ICs introduce small differences at high-k that are expected and will be characterized.
+
+## Simulation Code: NVIDIA Warp (GPU)
+
+- **Framework**: NVIDIA Warp 1.13.0 (`warp-lang`)
+- **Device**: NVIDIA RTX PRO 6000 Blackwell (95 GiB VRAM, sm_120, CUDA 13.0)
+- **Method**: Particle-Mesh (PM) — O(N log N) complexity
+  - CIC (Cloud-in-Cell) mass assignment to 512³ mesh
+  - FFT-based Poisson solver: ∇²φ = -4πGρ → φ(k) = -4πGρ(k)/k²
+  - Gradient of potential → forces on particles
+  - Leapfrog integration (kick-drift-kick scheme)
+- **Time stepping**: ~50-100 steps from z=127 to z=0, step size controlled by Courant condition
+
+## Reference Data: Quijote Power Spectra
+
+The Quijote fiducial P(k) at z=0 is publicly available at:
+`https://raw.githubusercontent.com/franciscovillaescusa/Quijote-simulations/master/summary_statistics/Pk/Pk_m_z=0_0.txt`
+
+This provides the non-linear matter power spectrum P(k) averaged over multiple Quijote realizations. The comparison metric is:
+- Ratio P_warp(k) / P_quijote(k) across k range 0.01–1 h/Mpc
+- Target: agreement within 5% for k < 0.3 h/Mpc
+
+## Speedup Benchmark
+
+Compare wall-clock time for:
+- Full PM simulation (512³): Warp GPU vs. equivalent numpy/scipy CPU implementation
+- Per-step breakdown: mass assignment, FFT, force interpolation, integration
+- Memory usage: GPU vs. CPU
+
+## File Paths
+
+All generated files are saved to the project data directory:
+- `/home/node/work/projects/cosmo_nbody_v1/data/` — IC files, snapshot outputs, P(k) outputs
+- No pre-existing input files; everything is generated in-code
+
+## Software Dependencies (all available in /opt/denario-venv)
+
+- `warp-lang==1.13.0` — GPU-accelerated kernels
+- `camb==1.6.6` — linear matter power spectrum
+- `numpy`, `scipy` — FFT, array operations
+- `matplotlib` — plotting
+
+
+Ideas:
+Idea selected1: 8. **Non-Linear Growth Bias Mapping**: Identify the specific redshift $z$ where the divergence between ZA-generated ICs and 2LPT-based reference data becomes statistically indistinguishable in the $P(k)$ domain. This uncovers the epoch where non-linear gravitational collapse "erases" the initial condition error.
+Idea selected2: 8. **Non-Linear Growth Bias Mapping**: Identify the specific redshift $z$ where the divergence between ZA-generated ICs and 2LPT-based reference data becomes statistically indistinguishable in the $P(k)$ domain. This uncovers the epoch where non-linear gravitational collapse "erases" the initial condition error.
+Idea selected3: 8. **Non-Linear Growth Bias Mapping**: Identify the specific redshift $z$ where the divergence between ZA-generated ICs and 2LPT-based reference data becomes statistically indistinguishable in the $P(k)$ domain. This uncovers the epoch where non-linear gravitational collapse "erases" the initial condition error.
+
+
+
+
+
+
+
+Respond in exactly the following format:
+
+\\begin{IDEA}
+<IDEA>
+\\end{IDEA}
+
+In <IDEA>, put the idea you have selected
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-3.1-flash-lite-preview] ########
+\begin{IDEA}
+8. **Non-Linear Growth Bias Mapping**: Identify the specific redshift $z$ where the divergence between ZA-generated ICs and 2LPT-based reference data becomes statistically indistinguishable in the $P(k)$ domain. This uncovers the epoch where non-linear gravitational collapse "erases" the initial condition error.
+\end{IDEA}
+
+
+###### PROMPT BEGINS ########
+Human: 
+**Role**: Skeptical Red Team Reviewer and Scientific Auditor.
+**Objective**: Conduct a rigorous "Stress Test" on the proposed research idea to identify fatal flaws, feasibility gaps, and potential scientific "slop."
+
+**Evaluation Criteria**:
+1. **Data-Hypothesis Alignment**: Does the dataset described actually contain the variables and precision required to test this idea?
+2. **Feasibility & Noise**: Is the signal-to-noise ratio realistic? Is the idea too ambitious for the provided data?
+3. **Redundancy Check**: Does this idea simply repeat a "standard" analysis, or is it a meaningful contribution?
+4. **Physical Reality**: Does the idea violate any constraints or physical laws mentioned in the data description?
+
+**Task**:
+- Critically analyze the "Current Idea" against the "Data Description."
+- If the idea is **unfeasible**, explicitly state why and suggest a "Strategic Pivot" (a new direction that *is* supported by the data).
+- If the idea is **feasible but weak**, identify the specific "weak links" in the logic.
+- Compare it against "Previous Ideas" to ensure the refinement loop is moving forward, not backward.
+
+**Operational Constraints**:
+- **Tone**: Be professional, objective, and intellectually demanding. 
+- **Brevity**: Use high-density bullet points. Do not waste words on pleasantries.
+- **Strict Adherence**: Every criticism must be grounded in the provided 'Data Description.'
+
+**Input Data**:
+- **Data Description**: # GPU-Accelerated Cosmological N-body Simulation with NVIDIA Warp
+
+## Overview
+
+This project implements a cosmological N-body (PM — Particle-Mesh) simulation using NVIDIA Warp on GPU, then validates it against reference Quijote power spectra. The goal is to quantify both the physical accuracy (P(k) comparison) and the computational speedup vs. equivalent CPU code.
+
+## Simulation Parameters (matching Quijote fiducial)
+
+| Parameter | Value |
+|---|---|
+| Box size | 1000 Mpc/h |
+| N_particles | 512³ = 134,217,728 |
+| Mesh resolution | 512³ (or 1024³) |
+| Cosmology | Planck 2018 fiducial |
+| Ωm | 0.3175 |
+| Ωb | 0.049 |
+| h | 0.6711 |
+| ns | 0.9624 |
+| σ8 | 0.834 |
+| Starting redshift | z_init = 127 |
+| Output redshifts | z = 0, 0.5, 1, 2 |
+| Random seed | 0 (fixed, reproducible) |
+
+## Initial Conditions
+
+ICs are generated on-the-fly using the Zel'dovich Approximation (ZA) / first-order Lagrangian Perturbation Theory:
+1. Compute linear matter power spectrum P(k, z_init) using `camb` with the Quijote fiducial cosmology
+2. Generate a Gaussian random field in Fourier space using P(k) and a fixed random seed
+3. Displace particles from a regular grid using the ZA displacement field
+4. Assign velocities using the ZA velocity field (∇φ / (aH f))
+
+Note: Quijote uses 2LPT (2nd-order LPT) for ICs. Our ZA ICs introduce small differences at high-k that are expected and will be characterized.
+
+## Simulation Code: NVIDIA Warp (GPU)
+
+- **Framework**: NVIDIA Warp 1.13.0 (`warp-lang`)
+- **Device**: NVIDIA RTX PRO 6000 Blackwell (95 GiB VRAM, sm_120, CUDA 13.0)
+- **Method**: Particle-Mesh (PM) — O(N log N) complexity
+  - CIC (Cloud-in-Cell) mass assignment to 512³ mesh
+  - FFT-based Poisson solver: ∇²φ = -4πGρ → φ(k) = -4πGρ(k)/k²
+  - Gradient of potential → forces on particles
+  - Leapfrog integration (kick-drift-kick scheme)
+- **Time stepping**: ~50-100 steps from z=127 to z=0, step size controlled by Courant condition
+
+## Reference Data: Quijote Power Spectra
+
+The Quijote fiducial P(k) at z=0 is publicly available at:
+`https://raw.githubusercontent.com/franciscovillaescusa/Quijote-simulations/master/summary_statistics/Pk/Pk_m_z=0_0.txt`
+
+This provides the non-linear matter power spectrum P(k) averaged over multiple Quijote realizations. The comparison metric is:
+- Ratio P_warp(k) / P_quijote(k) across k range 0.01–1 h/Mpc
+- Target: agreement within 5% for k < 0.3 h/Mpc
+
+## Speedup Benchmark
+
+Compare wall-clock time for:
+- Full PM simulation (512³): Warp GPU vs. equivalent numpy/scipy CPU implementation
+- Per-step breakdown: mass assignment, FFT, force interpolation, integration
+- Memory usage: GPU vs. CPU
+
+## File Paths
+
+All generated files are saved to the project data directory:
+- `/home/node/work/projects/cosmo_nbody_v1/data/` — IC files, snapshot outputs, P(k) outputs
+- No pre-existing input files; everything is generated in-code
+
+## Software Dependencies (all available in /opt/denario-venv)
+
+- `warp-lang==1.13.0` — GPU-accelerated kernels
+- `camb==1.6.6` — linear matter power spectrum
+- `numpy`, `scipy` — FFT, array operations
+- `matplotlib` — plotting
+
+- **Current Idea**: 8. **Non-Linear Growth Bias Mapping**: Identify the specific redshift $z$ where the divergence between ZA-generated ICs and 2LPT-based reference data becomes statistically indistinguishable in the $P(k)$ domain. This uncovers the epoch where non-linear gravitational collapse "erases" the initial condition error.    
+
+Respond in the following format:
+
+\\begin{CRITIC}
+<CRITIC>
+\\end{CRITIC}
+
+In <CRITIC>, put your criticism to the idea. Try to be brief in the description.
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-3.1-flash-lite-preview] ########
+\begin{CRITIC}
+*   **Data-Hypothesis Mismatch**: The hypothesis assumes the "erasure" of IC errors is a function of redshift. However, the provided data only outputs snapshots at $z = 0, 0.5, 1, 2$. This is insufficient temporal resolution to identify the specific epoch of convergence; you will likely observe the divergence at $z=2$ and convergence at $z=0$, leaving the transition point undefined.
+*   **Feasibility & Noise**: The signal-to-noise ratio is compromised by the PM method itself. PM simulations with a $512^3$ mesh on a $1000$ Mpc/h box have a Nyquist frequency of $k_{Ny} \approx 1.6$ h/Mpc. The force resolution is limited by the mesh size (smoothing scale). Distinguishing between IC-induced errors (ZA vs 2LPT) and PM-induced discretization errors at high-$k$ is mathematically ill-posed without a higher-resolution reference or a particle-mesh-particle (PMP) scheme.
+*   **Redundancy Check**: Comparing ZA vs 2LPT is a well-trodden path in computational cosmology (e.g., Crocce et al. 2006). Simply measuring the "erasure" point without a novel analytical framework or a specific application (e.g., bias correction for emulator training) adds little value to the field.
+*   **Strategic Pivot**: Shift focus from "mapping the erasure epoch" to **"Quantifying the PM-Resolution Bias."** Use the Warp implementation to perform a resolution study (comparing $512^3$ vs $1024^3$ meshes). Quantify the specific $k$-range where the PM force-softening dominates over the IC-induced ZA errors. This provides actionable data for users of your Warp-based simulation framework regarding the validity limits of their results.
+\end{CRITIC}
+
+
+###### PROMPT BEGINS ########
+Human: 
+**Role**: Senior Research Scientific.
+**Objective**: Synthesize a primary research idea with expert criticism to produce a refined, groundbreaking, and technically feasible scientific objective.
+
+**Task**:
+You are in an iterative refinement loop (Iteration: 0). Your goal is to take the "Previous Idea," pass it through the filter of the "Critiques," and produce a "Hardened Idea" that is more scientifically rigorous and original than its predecessor.
+
+**Refinement Principles**:
+1. **Address Caveats**: If the critic mentioned a lack of feasibility, adjust the scope of the idea to fit the 'Data Description.'
+2. **Increase Specificity**: Move away from generic goals. Use the statistics and variables found in the data description to make the idea more concrete.
+3. **Internalize Feedback**: Do not explicitly mention the criticism or explain your changes. Instead, weave the solutions directly into the new version of the idea.
+4. **Maintain Grounding**: Ensure the "groundbreaking" aspect remains physically possible within the provided dataset's constraints.
+
+**Operational Constraints**:
+- **Brevity**: Keep the description concise but high-density (max 6 sentences).
+- **Format**: Do not include introductory text or meta-commentary about the process.
+- **Fidelity**: Stick strictly to the guidelines and physical realities described in the data description.
+- The idea must contain a title and a description of the idea
+
+**Input Data**:
+- **Data Description**: # GPU-Accelerated Cosmological N-body Simulation with NVIDIA Warp
+
+## Overview
+
+This project implements a cosmological N-body (PM — Particle-Mesh) simulation using NVIDIA Warp on GPU, then validates it against reference Quijote power spectra. The goal is to quantify both the physical accuracy (P(k) comparison) and the computational speedup vs. equivalent CPU code.
+
+## Simulation Parameters (matching Quijote fiducial)
+
+| Parameter | Value |
+|---|---|
+| Box size | 1000 Mpc/h |
+| N_particles | 512³ = 134,217,728 |
+| Mesh resolution | 512³ (or 1024³) |
+| Cosmology | Planck 2018 fiducial |
+| Ωm | 0.3175 |
+| Ωb | 0.049 |
+| h | 0.6711 |
+| ns | 0.9624 |
+| σ8 | 0.834 |
+| Starting redshift | z_init = 127 |
+| Output redshifts | z = 0, 0.5, 1, 2 |
+| Random seed | 0 (fixed, reproducible) |
+
+## Initial Conditions
+
+ICs are generated on-the-fly using the Zel'dovich Approximation (ZA) / first-order Lagrangian Perturbation Theory:
+1. Compute linear matter power spectrum P(k, z_init) using `camb` with the Quijote fiducial cosmology
+2. Generate a Gaussian random field in Fourier space using P(k) and a fixed random seed
+3. Displace particles from a regular grid using the ZA displacement field
+4. Assign velocities using the ZA velocity field (∇φ / (aH f))
+
+Note: Quijote uses 2LPT (2nd-order LPT) for ICs. Our ZA ICs introduce small differences at high-k that are expected and will be characterized.
+
+## Simulation Code: NVIDIA Warp (GPU)
+
+- **Framework**: NVIDIA Warp 1.13.0 (`warp-lang`)
+- **Device**: NVIDIA RTX PRO 6000 Blackwell (95 GiB VRAM, sm_120, CUDA 13.0)
+- **Method**: Particle-Mesh (PM) — O(N log N) complexity
+  - CIC (Cloud-in-Cell) mass assignment to 512³ mesh
+  - FFT-based Poisson solver: ∇²φ = -4πGρ → φ(k) = -4πGρ(k)/k²
+  - Gradient of potential → forces on particles
+  - Leapfrog integration (kick-drift-kick scheme)
+- **Time stepping**: ~50-100 steps from z=127 to z=0, step size controlled by Courant condition
+
+## Reference Data: Quijote Power Spectra
+
+The Quijote fiducial P(k) at z=0 is publicly available at:
+`https://raw.githubusercontent.com/franciscovillaescusa/Quijote-simulations/master/summary_statistics/Pk/Pk_m_z=0_0.txt`
+
+This provides the non-linear matter power spectrum P(k) averaged over multiple Quijote realizations. The comparison metric is:
+- Ratio P_warp(k) / P_quijote(k) across k range 0.01–1 h/Mpc
+- Target: agreement within 5% for k < 0.3 h/Mpc
+
+## Speedup Benchmark
+
+Compare wall-clock time for:
+- Full PM simulation (512³): Warp GPU vs. equivalent numpy/scipy CPU implementation
+- Per-step breakdown: mass assignment, FFT, force interpolation, integration
+- Memory usage: GPU vs. CPU
+
+## File Paths
+
+All generated files are saved to the project data directory:
+- `/home/node/work/projects/cosmo_nbody_v1/data/` — IC files, snapshot outputs, P(k) outputs
+- No pre-existing input files; everything is generated in-code
+
+## Software Dependencies (all available in /opt/denario-venv)
+
+- `warp-lang==1.13.0` — GPU-accelerated kernels
+- `camb==1.6.6` — linear matter power spectrum
+- `numpy`, `scipy` — FFT, array operations
+- `matplotlib` — plotting
+
+- **Critical Feedback**: *   **Data-Hypothesis Mismatch**: The hypothesis assumes the "erasure" of IC errors is a function of redshift. However, the provided data only outputs snapshots at $z = 0, 0.5, 1, 2$. This is insufficient temporal resolution to identify the specific epoch of convergence; you will likely observe the divergence at $z=2$ and convergence at $z=0$, leaving the transition point undefined.
+*   **Feasibility & Noise**: The signal-to-noise ratio is compromised by the PM method itself. PM simulations with a $512^3$ mesh on a $1000$ Mpc/h box have a Nyquist frequency of $k_{Ny} \approx 1.6$ h/Mpc. The force resolution is limited by the mesh size (smoothing scale). Distinguishing between IC-induced errors (ZA vs 2LPT) and PM-induced discretization errors at high-$k$ is mathematically ill-posed without a higher-resolution reference or a particle-mesh-particle (PMP) scheme.
+*   **Redundancy Check**: Comparing ZA vs 2LPT is a well-trodden path in computational cosmology (e.g., Crocce et al. 2006). Simply measuring the "erasure" point without a novel analytical framework or a specific application (e.g., bias correction for emulator training) adds little value to the field.
+*   **Strategic Pivot**: Shift focus from "mapping the erasure epoch" to **"Quantifying the PM-Resolution Bias."** Use the Warp implementation to perform a resolution study (comparing $512^3$ vs $1024^3$ meshes). Quantify the specific $k$-range where the PM force-softening dominates over the IC-induced ZA errors. This provides actionable data for users of your Warp-based simulation framework regarding the validity limits of their results.
+
+Respond in the following format:
+
+\\begin{IDEA}
+<IDEA>
+\\end{IDEA}
+
+In <IDEA>, put the refined idea. 
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-3.1-flash-lite-preview] ########
+\begin{IDEA}
+**Title**: Quantifying Resolution-Dependent Force Softening and IC-Induced Bias in GPU-Accelerated PM Simulations
+
+**Description**: This research characterizes the interplay between Lagrangian Perturbation Theory (LPT) errors and PM-mesh discretization by systematically comparing $512^3$ and $1024^3$ mesh resolutions within a $1000$ Mpc/h box. By isolating the $k$-range where the PM force-softening scale dominates the power spectrum suppression, we establish a formal validity threshold for the Warp-based simulation framework against the Quijote fiducial. We will quantify the specific $k$-space deviation ($P_{warp}/P_{Quijote}$) across $z \in \{0, 0.5, 1, 2\}$, mapping the transition from IC-dominated ZA inaccuracies to grid-dominated discretization errors. This analysis will produce a transfer function that corrects for PM-softening, providing a high-fidelity calibration for downstream emulator training. The results will establish the precise operational limits of the NVIDIA Warp implementation, enabling users to distinguish physical signal from numerical artifacts at the Nyquist limit.
+\end{IDEA}
+
+
+###### PROMPT BEGINS ########
+Human: 
+**Role**: Skeptical Red Team Reviewer and Scientific Auditor.
+**Objective**: Conduct a rigorous "Stress Test" on the proposed research idea to identify fatal flaws, feasibility gaps, and potential scientific "slop."
+
+**Evaluation Criteria**:
+1. **Data-Hypothesis Alignment**: Does the dataset described actually contain the variables and precision required to test this idea?
+2. **Feasibility & Noise**: Is the signal-to-noise ratio realistic? Is the idea too ambitious for the provided data?
+3. **Redundancy Check**: Does this idea simply repeat a "standard" analysis, or is it a meaningful contribution?
+4. **Physical Reality**: Does the idea violate any constraints or physical laws mentioned in the data description?
+
+**Task**:
+- Critically analyze the "Current Idea" against the "Data Description."
+- If the idea is **unfeasible**, explicitly state why and suggest a "Strategic Pivot" (a new direction that *is* supported by the data).
+- If the idea is **feasible but weak**, identify the specific "weak links" in the logic.
+- Compare it against "Previous Ideas" to ensure the refinement loop is moving forward, not backward.
+
+**Operational Constraints**:
+- **Tone**: Be professional, objective, and intellectually demanding. 
+- **Brevity**: Use high-density bullet points. Do not waste words on pleasantries.
+- **Strict Adherence**: Every criticism must be grounded in the provided 'Data Description.'
+
+**Input Data**:
+- **Data Description**: # GPU-Accelerated Cosmological N-body Simulation with NVIDIA Warp
+
+## Overview
+
+This project implements a cosmological N-body (PM — Particle-Mesh) simulation using NVIDIA Warp on GPU, then validates it against reference Quijote power spectra. The goal is to quantify both the physical accuracy (P(k) comparison) and the computational speedup vs. equivalent CPU code.
+
+## Simulation Parameters (matching Quijote fiducial)
+
+| Parameter | Value |
+|---|---|
+| Box size | 1000 Mpc/h |
+| N_particles | 512³ = 134,217,728 |
+| Mesh resolution | 512³ (or 1024³) |
+| Cosmology | Planck 2018 fiducial |
+| Ωm | 0.3175 |
+| Ωb | 0.049 |
+| h | 0.6711 |
+| ns | 0.9624 |
+| σ8 | 0.834 |
+| Starting redshift | z_init = 127 |
+| Output redshifts | z = 0, 0.5, 1, 2 |
+| Random seed | 0 (fixed, reproducible) |
+
+## Initial Conditions
+
+ICs are generated on-the-fly using the Zel'dovich Approximation (ZA) / first-order Lagrangian Perturbation Theory:
+1. Compute linear matter power spectrum P(k, z_init) using `camb` with the Quijote fiducial cosmology
+2. Generate a Gaussian random field in Fourier space using P(k) and a fixed random seed
+3. Displace particles from a regular grid using the ZA displacement field
+4. Assign velocities using the ZA velocity field (∇φ / (aH f))
+
+Note: Quijote uses 2LPT (2nd-order LPT) for ICs. Our ZA ICs introduce small differences at high-k that are expected and will be characterized.
+
+## Simulation Code: NVIDIA Warp (GPU)
+
+- **Framework**: NVIDIA Warp 1.13.0 (`warp-lang`)
+- **Device**: NVIDIA RTX PRO 6000 Blackwell (95 GiB VRAM, sm_120, CUDA 13.0)
+- **Method**: Particle-Mesh (PM) — O(N log N) complexity
+  - CIC (Cloud-in-Cell) mass assignment to 512³ mesh
+  - FFT-based Poisson solver: ∇²φ = -4πGρ → φ(k) = -4πGρ(k)/k²
+  - Gradient of potential → forces on particles
+  - Leapfrog integration (kick-drift-kick scheme)
+- **Time stepping**: ~50-100 steps from z=127 to z=0, step size controlled by Courant condition
+
+## Reference Data: Quijote Power Spectra
+
+The Quijote fiducial P(k) at z=0 is publicly available at:
+`https://raw.githubusercontent.com/franciscovillaescusa/Quijote-simulations/master/summary_statistics/Pk/Pk_m_z=0_0.txt`
+
+This provides the non-linear matter power spectrum P(k) averaged over multiple Quijote realizations. The comparison metric is:
+- Ratio P_warp(k) / P_quijote(k) across k range 0.01–1 h/Mpc
+- Target: agreement within 5% for k < 0.3 h/Mpc
+
+## Speedup Benchmark
+
+Compare wall-clock time for:
+- Full PM simulation (512³): Warp GPU vs. equivalent numpy/scipy CPU implementation
+- Per-step breakdown: mass assignment, FFT, force interpolation, integration
+- Memory usage: GPU vs. CPU
+
+## File Paths
+
+All generated files are saved to the project data directory:
+- `/home/node/work/projects/cosmo_nbody_v1/data/` — IC files, snapshot outputs, P(k) outputs
+- No pre-existing input files; everything is generated in-code
+
+## Software Dependencies (all available in /opt/denario-venv)
+
+- `warp-lang==1.13.0` — GPU-accelerated kernels
+- `camb==1.6.6` — linear matter power spectrum
+- `numpy`, `scipy` — FFT, array operations
+- `matplotlib` — plotting
+
+- **Current Idea**: **Title**: Quantifying Resolution-Dependent Force Softening and IC-Induced Bias in GPU-Accelerated PM Simulations
+
+**Description**: This research characterizes the interplay between Lagrangian Perturbation Theory (LPT) errors and PM-mesh discretization by systematically comparing $512^3$ and $1024^3$ mesh resolutions within a $1000$ Mpc/h box. By isolating the $k$-range where the PM force-softening scale dominates the power spectrum suppression, we establish a formal validity threshold for the Warp-based simulation framework against the Quijote fiducial. We will quantify the specific $k$-space deviation ($P_{warp}/P_{Quijote}$) across $z \in \{0, 0.5, 1, 2\}$, mapping the transition from IC-dominated ZA inaccuracies to grid-dominated discretization errors. This analysis will produce a transfer function that corrects for PM-softening, providing a high-fidelity calibration for downstream emulator training. The results will establish the precise operational limits of the NVIDIA Warp implementation, enabling users to distinguish physical signal from numerical artifacts at the Nyquist limit.
+- **Previous Versions (for context)**: 
+
+
+Iteration 0:
+Idea: **Title**: Quantifying Resolution-Dependent Force Softening and IC-Induced Bias in GPU-Accelerated PM Simulations
+
+**Description**: This research characterizes the interplay between Lagrangian Perturbation Theory (LPT) errors and PM-mesh discretization by systematically comparing $512^3$ and $1024^3$ mesh resolutions within a $1000$ Mpc/h box. By isolating the $k$-range where the PM force-softening scale dominates the power spectrum suppression, we establish a formal validity threshold for the Warp-based simulation framework against the Quijote fiducial. We will quantify the specific $k$-space deviation ($P_{warp}/P_{Quijote}$) across $z \in \{0, 0.5, 1, 2\}$, mapping the transition from IC-dominated ZA inaccuracies to grid-dominated discretization errors. This analysis will produce a transfer function that corrects for PM-softening, providing a high-fidelity calibration for downstream emulator training. The results will establish the precise operational limits of the NVIDIA Warp implementation, enabling users to distinguish physical signal from numerical artifacts at the Nyquist limit.
+    
+
+Respond in the following format:
+
+\\begin{CRITIC}
+<CRITIC>
+\\end{CRITIC}
+
+In <CRITIC>, put your criticism to the idea. Try to be brief in the description.
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-3.1-flash-lite-preview] ########
+\begin{CRITIC}
+*   **Data-Hypothesis Alignment (Fatal Flaw)**: The Quijote fiducial simulations are full N-body (TreePM/Mesh-based with high-resolution force softening), whereas your implementation is a pure PM code. Comparing a pure PM simulation to a full N-body reference will yield massive discrepancies at $k > 0.1 \, h/\text{Mpc}$ due to the lack of small-scale structure formation (halo collapse) in PM. You cannot "correct" for this via a simple transfer function; the physics is fundamentally missing.
+*   **Feasibility & Noise**: You propose a "transfer function" to correct for PM-softening. This is scientifically unsound. PM simulations lack the non-linear power generated by high-density regions (halos) that full N-body codes resolve. Your $P(k)$ ratio will be dominated by the missing non-linear power, not just "softening."
+*   **Redundancy Check**: The "transfer function" approach is a known dead-end in cosmology. It attempts to map a low-fidelity model to a high-fidelity one without accounting for the missing non-linear mode coupling.
+*   **Strategic Pivot**: Abandon the "transfer function" goal. Pivot to **"Benchmarking PM-specific Numerical Artifacts."** Instead of comparing to Quijote's full N-body $P(k)$, compare your Warp PM output against a *theoretical* PM prediction (e.g., using the Zel'dovich approximation or a standard PM-theory model). Use the Quijote data only to define the *limit* of where your PM code fails, rather than trying to "correct" it to match the full N-body result.
+*   **Weak Link**: The assumption that $1024^3$ mesh resolution will significantly improve $P(k)$ accuracy against a full N-body reference is flawed; the bottleneck is the lack of a sub-grid model for halo formation, not just the mesh resolution.
+\end{CRITIC}
+
+
+###### PROMPT BEGINS ########
+Human: 
+**Role**: Senior Research Scientific.
+**Objective**: Synthesize a primary research idea with expert criticism to produce a refined, groundbreaking, and technically feasible scientific objective.
+
+**Task**:
+You are in an iterative refinement loop (Iteration: 1). Your goal is to take the "Previous Idea," pass it through the filter of the "Critiques," and produce a "Hardened Idea" that is more scientifically rigorous and original than its predecessor.
+
+**Refinement Principles**:
+1. **Address Caveats**: If the critic mentioned a lack of feasibility, adjust the scope of the idea to fit the 'Data Description.'
+2. **Increase Specificity**: Move away from generic goals. Use the statistics and variables found in the data description to make the idea more concrete.
+3. **Internalize Feedback**: Do not explicitly mention the criticism or explain your changes. Instead, weave the solutions directly into the new version of the idea.
+4. **Maintain Grounding**: Ensure the "groundbreaking" aspect remains physically possible within the provided dataset's constraints.
+
+**Operational Constraints**:
+- **Brevity**: Keep the description concise but high-density (max 6 sentences).
+- **Format**: Do not include introductory text or meta-commentary about the process.
+- **Fidelity**: Stick strictly to the guidelines and physical realities described in the data description.
+- The idea must contain a title and a description of the idea
+
+**Input Data**:
+- **Data Description**: # GPU-Accelerated Cosmological N-body Simulation with NVIDIA Warp
+
+## Overview
+
+This project implements a cosmological N-body (PM — Particle-Mesh) simulation using NVIDIA Warp on GPU, then validates it against reference Quijote power spectra. The goal is to quantify both the physical accuracy (P(k) comparison) and the computational speedup vs. equivalent CPU code.
+
+## Simulation Parameters (matching Quijote fiducial)
+
+| Parameter | Value |
+|---|---|
+| Box size | 1000 Mpc/h |
+| N_particles | 512³ = 134,217,728 |
+| Mesh resolution | 512³ (or 1024³) |
+| Cosmology | Planck 2018 fiducial |
+| Ωm | 0.3175 |
+| Ωb | 0.049 |
+| h | 0.6711 |
+| ns | 0.9624 |
+| σ8 | 0.834 |
+| Starting redshift | z_init = 127 |
+| Output redshifts | z = 0, 0.5, 1, 2 |
+| Random seed | 0 (fixed, reproducible) |
+
+## Initial Conditions
+
+ICs are generated on-the-fly using the Zel'dovich Approximation (ZA) / first-order Lagrangian Perturbation Theory:
+1. Compute linear matter power spectrum P(k, z_init) using `camb` with the Quijote fiducial cosmology
+2. Generate a Gaussian random field in Fourier space using P(k) and a fixed random seed
+3. Displace particles from a regular grid using the ZA displacement field
+4. Assign velocities using the ZA velocity field (∇φ / (aH f))
+
+Note: Quijote uses 2LPT (2nd-order LPT) for ICs. Our ZA ICs introduce small differences at high-k that are expected and will be characterized.
+
+## Simulation Code: NVIDIA Warp (GPU)
+
+- **Framework**: NVIDIA Warp 1.13.0 (`warp-lang`)
+- **Device**: NVIDIA RTX PRO 6000 Blackwell (95 GiB VRAM, sm_120, CUDA 13.0)
+- **Method**: Particle-Mesh (PM) — O(N log N) complexity
+  - CIC (Cloud-in-Cell) mass assignment to 512³ mesh
+  - FFT-based Poisson solver: ∇²φ = -4πGρ → φ(k) = -4πGρ(k)/k²
+  - Gradient of potential → forces on particles
+  - Leapfrog integration (kick-drift-kick scheme)
+- **Time stepping**: ~50-100 steps from z=127 to z=0, step size controlled by Courant condition
+
+## Reference Data: Quijote Power Spectra
+
+The Quijote fiducial P(k) at z=0 is publicly available at:
+`https://raw.githubusercontent.com/franciscovillaescusa/Quijote-simulations/master/summary_statistics/Pk/Pk_m_z=0_0.txt`
+
+This provides the non-linear matter power spectrum P(k) averaged over multiple Quijote realizations. The comparison metric is:
+- Ratio P_warp(k) / P_quijote(k) across k range 0.01–1 h/Mpc
+- Target: agreement within 5% for k < 0.3 h/Mpc
+
+## Speedup Benchmark
+
+Compare wall-clock time for:
+- Full PM simulation (512³): Warp GPU vs. equivalent numpy/scipy CPU implementation
+- Per-step breakdown: mass assignment, FFT, force interpolation, integration
+- Memory usage: GPU vs. CPU
+
+## File Paths
+
+All generated files are saved to the project data directory:
+- `/home/node/work/projects/cosmo_nbody_v1/data/` — IC files, snapshot outputs, P(k) outputs
+- No pre-existing input files; everything is generated in-code
+
+## Software Dependencies (all available in /opt/denario-venv)
+
+- `warp-lang==1.13.0` — GPU-accelerated kernels
+- `camb==1.6.6` — linear matter power spectrum
+- `numpy`, `scipy` — FFT, array operations
+- `matplotlib` — plotting
+
+- **Previous Versions**: 
+
+
+Iteration 0:
+Idea: **Title**: Quantifying Resolution-Dependent Force Softening and IC-Induced Bias in GPU-Accelerated PM Simulations
+
+**Description**: This research characterizes the interplay between Lagrangian Perturbation Theory (LPT) errors and PM-mesh discretization by systematically comparing $512^3$ and $1024^3$ mesh resolutions within a $1000$ Mpc/h box. By isolating the $k$-range where the PM force-softening scale dominates the power spectrum suppression, we establish a formal validity threshold for the Warp-based simulation framework against the Quijote fiducial. We will quantify the specific $k$-space deviation ($P_{warp}/P_{Quijote}$) across $z \in \{0, 0.5, 1, 2\}$, mapping the transition from IC-dominated ZA inaccuracies to grid-dominated discretization errors. This analysis will produce a transfer function that corrects for PM-softening, providing a high-fidelity calibration for downstream emulator training. The results will establish the precise operational limits of the NVIDIA Warp implementation, enabling users to distinguish physical signal from numerical artifacts at the Nyquist limit.
+
+- **Critical Feedback**: *   **Data-Hypothesis Alignment (Fatal Flaw)**: The Quijote fiducial simulations are full N-body (TreePM/Mesh-based with high-resolution force softening), whereas your implementation is a pure PM code. Comparing a pure PM simulation to a full N-body reference will yield massive discrepancies at $k > 0.1 \, h/\text{Mpc}$ due to the lack of small-scale structure formation (halo collapse) in PM. You cannot "correct" for this via a simple transfer function; the physics is fundamentally missing.
+*   **Feasibility & Noise**: You propose a "transfer function" to correct for PM-softening. This is scientifically unsound. PM simulations lack the non-linear power generated by high-density regions (halos) that full N-body codes resolve. Your $P(k)$ ratio will be dominated by the missing non-linear power, not just "softening."
+*   **Redundancy Check**: The "transfer function" approach is a known dead-end in cosmology. It attempts to map a low-fidelity model to a high-fidelity one without accounting for the missing non-linear mode coupling.
+*   **Strategic Pivot**: Abandon the "transfer function" goal. Pivot to **"Benchmarking PM-specific Numerical Artifacts."** Instead of comparing to Quijote's full N-body $P(k)$, compare your Warp PM output against a *theoretical* PM prediction (e.g., using the Zel'dovich approximation or a standard PM-theory model). Use the Quijote data only to define the *limit* of where your PM code fails, rather than trying to "correct" it to match the full N-body result.
+*   **Weak Link**: The assumption that $1024^3$ mesh resolution will significantly improve $P(k)$ accuracy against a full N-body reference is flawed; the bottleneck is the lack of a sub-grid model for halo formation, not just the mesh resolution.
+
+Respond in the following format:
+
+\\begin{IDEA}
+<IDEA>
+\\end{IDEA}
+
+In <IDEA>, put the refined idea. 
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-3.1-flash-lite-preview] ########
+\begin{IDEA}
+**Title**: Benchmarking NVIDIA Warp PM-Dynamics: Quantifying Grid-Discretization and Temporal Integration Errors against Theoretical PM Limits
+
+**Description**: This study isolates the numerical performance of a GPU-accelerated Particle-Mesh (PM) framework by measuring the divergence of its power spectrum $P(k)$ from the theoretical Zel'dovich Approximation (ZA) and second-order Lagrangian Perturbation Theory (2LPT) predictions. By executing simulations on a $1000$ Mpc/h volume with $512^3$ particles, we quantify the specific $k$-space transition where grid-induced force anisotropy and leapfrog integration errors supersede the expected PM-model output. We utilize the Quijote fiducial power spectra not as a target for correction, but as a defined "failure boundary" to map the exact $k$-range where pure PM dynamics cease to capture the linear-to-non-linear transition. This benchmarking establishes the operational fidelity of the NVIDIA Warp implementation by isolating the impact of CIC mass-assignment artifacts and Courant-limited time stepping on the matter power spectrum. The final output provides a rigorous performance profile of the Warp-based Poisson solver, characterizing the computational speedup versus the specific numerical noise floor inherent to the PM approach.
+\end{IDEA}
+
+
+###### PROMPT BEGINS ########
+Human: 
+**Role**: Skeptical Red Team Reviewer and Scientific Auditor.
+**Objective**: Conduct a rigorous "Stress Test" on the proposed research idea to identify fatal flaws, feasibility gaps, and potential scientific "slop."
+
+**Evaluation Criteria**:
+1. **Data-Hypothesis Alignment**: Does the dataset described actually contain the variables and precision required to test this idea?
+2. **Feasibility & Noise**: Is the signal-to-noise ratio realistic? Is the idea too ambitious for the provided data?
+3. **Redundancy Check**: Does this idea simply repeat a "standard" analysis, or is it a meaningful contribution?
+4. **Physical Reality**: Does the idea violate any constraints or physical laws mentioned in the data description?
+
+**Task**:
+- Critically analyze the "Current Idea" against the "Data Description."
+- If the idea is **unfeasible**, explicitly state why and suggest a "Strategic Pivot" (a new direction that *is* supported by the data).
+- If the idea is **feasible but weak**, identify the specific "weak links" in the logic.
+- Compare it against "Previous Ideas" to ensure the refinement loop is moving forward, not backward.
+
+**Operational Constraints**:
+- **Tone**: Be professional, objective, and intellectually demanding. 
+- **Brevity**: Use high-density bullet points. Do not waste words on pleasantries.
+- **Strict Adherence**: Every criticism must be grounded in the provided 'Data Description.'
+
+**Input Data**:
+- **Data Description**: # GPU-Accelerated Cosmological N-body Simulation with NVIDIA Warp
+
+## Overview
+
+This project implements a cosmological N-body (PM — Particle-Mesh) simulation using NVIDIA Warp on GPU, then validates it against reference Quijote power spectra. The goal is to quantify both the physical accuracy (P(k) comparison) and the computational speedup vs. equivalent CPU code.
+
+## Simulation Parameters (matching Quijote fiducial)
+
+| Parameter | Value |
+|---|---|
+| Box size | 1000 Mpc/h |
+| N_particles | 512³ = 134,217,728 |
+| Mesh resolution | 512³ (or 1024³) |
+| Cosmology | Planck 2018 fiducial |
+| Ωm | 0.3175 |
+| Ωb | 0.049 |
+| h | 0.6711 |
+| ns | 0.9624 |
+| σ8 | 0.834 |
+| Starting redshift | z_init = 127 |
+| Output redshifts | z = 0, 0.5, 1, 2 |
+| Random seed | 0 (fixed, reproducible) |
+
+## Initial Conditions
+
+ICs are generated on-the-fly using the Zel'dovich Approximation (ZA) / first-order Lagrangian Perturbation Theory:
+1. Compute linear matter power spectrum P(k, z_init) using `camb` with the Quijote fiducial cosmology
+2. Generate a Gaussian random field in Fourier space using P(k) and a fixed random seed
+3. Displace particles from a regular grid using the ZA displacement field
+4. Assign velocities using the ZA velocity field (∇φ / (aH f))
+
+Note: Quijote uses 2LPT (2nd-order LPT) for ICs. Our ZA ICs introduce small differences at high-k that are expected and will be characterized.
+
+## Simulation Code: NVIDIA Warp (GPU)
+
+- **Framework**: NVIDIA Warp 1.13.0 (`warp-lang`)
+- **Device**: NVIDIA RTX PRO 6000 Blackwell (95 GiB VRAM, sm_120, CUDA 13.0)
+- **Method**: Particle-Mesh (PM) — O(N log N) complexity
+  - CIC (Cloud-in-Cell) mass assignment to 512³ mesh
+  - FFT-based Poisson solver: ∇²φ = -4πGρ → φ(k) = -4πGρ(k)/k²
+  - Gradient of potential → forces on particles
+  - Leapfrog integration (kick-drift-kick scheme)
+- **Time stepping**: ~50-100 steps from z=127 to z=0, step size controlled by Courant condition
+
+## Reference Data: Quijote Power Spectra
+
+The Quijote fiducial P(k) at z=0 is publicly available at:
+`https://raw.githubusercontent.com/franciscovillaescusa/Quijote-simulations/master/summary_statistics/Pk/Pk_m_z=0_0.txt`
+
+This provides the non-linear matter power spectrum P(k) averaged over multiple Quijote realizations. The comparison metric is:
+- Ratio P_warp(k) / P_quijote(k) across k range 0.01–1 h/Mpc
+- Target: agreement within 5% for k < 0.3 h/Mpc
+
+## Speedup Benchmark
+
+Compare wall-clock time for:
+- Full PM simulation (512³): Warp GPU vs. equivalent numpy/scipy CPU implementation
+- Per-step breakdown: mass assignment, FFT, force interpolation, integration
+- Memory usage: GPU vs. CPU
+
+## File Paths
+
+All generated files are saved to the project data directory:
+- `/home/node/work/projects/cosmo_nbody_v1/data/` — IC files, snapshot outputs, P(k) outputs
+- No pre-existing input files; everything is generated in-code
+
+## Software Dependencies (all available in /opt/denario-venv)
+
+- `warp-lang==1.13.0` — GPU-accelerated kernels
+- `camb==1.6.6` — linear matter power spectrum
+- `numpy`, `scipy` — FFT, array operations
+- `matplotlib` — plotting
+
+- **Current Idea**: **Title**: Benchmarking NVIDIA Warp PM-Dynamics: Quantifying Grid-Discretization and Temporal Integration Errors against Theoretical PM Limits
+
+**Description**: This study isolates the numerical performance of a GPU-accelerated Particle-Mesh (PM) framework by measuring the divergence of its power spectrum $P(k)$ from the theoretical Zel'dovich Approximation (ZA) and second-order Lagrangian Perturbation Theory (2LPT) predictions. By executing simulations on a $1000$ Mpc/h volume with $512^3$ particles, we quantify the specific $k$-space transition where grid-induced force anisotropy and leapfrog integration errors supersede the expected PM-model output. We utilize the Quijote fiducial power spectra not as a target for correction, but as a defined "failure boundary" to map the exact $k$-range where pure PM dynamics cease to capture the linear-to-non-linear transition. This benchmarking establishes the operational fidelity of the NVIDIA Warp implementation by isolating the impact of CIC mass-assignment artifacts and Courant-limited time stepping on the matter power spectrum. The final output provides a rigorous performance profile of the Warp-based Poisson solver, characterizing the computational speedup versus the specific numerical noise floor inherent to the PM approach.
+- **Previous Versions (for context)**: 
+
+
+
+Iteration 0:
+Idea: **Title**: Quantifying Resolution-Dependent Force Softening and IC-Induced Bias in GPU-Accelerated PM Simulations
+
+**Description**: This research characterizes the interplay between Lagrangian Perturbation Theory (LPT) errors and PM-mesh discretization by systematically comparing $512^3$ and $1024^3$ mesh resolutions within a $1000$ Mpc/h box. By isolating the $k$-range where the PM force-softening scale dominates the power spectrum suppression, we establish a formal validity threshold for the Warp-based simulation framework against the Quijote fiducial. We will quantify the specific $k$-space deviation ($P_{warp}/P_{Quijote}$) across $z \in \{0, 0.5, 1, 2\}$, mapping the transition from IC-dominated ZA inaccuracies to grid-dominated discretization errors. This analysis will produce a transfer function that corrects for PM-softening, providing a high-fidelity calibration for downstream emulator training. The results will establish the precise operational limits of the NVIDIA Warp implementation, enabling users to distinguish physical signal from numerical artifacts at the Nyquist limit.
+
+
+Iteration 1:
+Idea: **Title**: Benchmarking NVIDIA Warp PM-Dynamics: Quantifying Grid-Discretization and Temporal Integration Errors against Theoretical PM Limits
+
+**Description**: This study isolates the numerical performance of a GPU-accelerated Particle-Mesh (PM) framework by measuring the divergence of its power spectrum $P(k)$ from the theoretical Zel'dovich Approximation (ZA) and second-order Lagrangian Perturbation Theory (2LPT) predictions. By executing simulations on a $1000$ Mpc/h volume with $512^3$ particles, we quantify the specific $k$-space transition where grid-induced force anisotropy and leapfrog integration errors supersede the expected PM-model output. We utilize the Quijote fiducial power spectra not as a target for correction, but as a defined "failure boundary" to map the exact $k$-range where pure PM dynamics cease to capture the linear-to-non-linear transition. This benchmarking establishes the operational fidelity of the NVIDIA Warp implementation by isolating the impact of CIC mass-assignment artifacts and Courant-limited time stepping on the matter power spectrum. The final output provides a rigorous performance profile of the Warp-based Poisson solver, characterizing the computational speedup versus the specific numerical noise floor inherent to the PM approach.
+    
+
+Respond in the following format:
+
+\\begin{CRITIC}
+<CRITIC>
+\\end{CRITIC}
+
+In <CRITIC>, put your criticism to the idea. Try to be brief in the description.
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-3.1-flash-lite-preview] ########
+\begin{CRITIC}
+*   **Data-Hypothesis Mismatch**: The proposal claims to isolate "leapfrog integration errors" and "grid-induced force anisotropy," but the provided data description lacks the high-resolution reference simulations (e.g., N-body with force softening or higher-order solvers) required to decouple these specific numerical artifacts from the inherent limitations of the PM method itself.
+*   **Feasibility Gap**: You propose mapping the transition where PM dynamics "cease to capture the linear-to-non-linear transition." However, the Quijote reference data is a *full* N-body simulation (including non-linear collapse). Comparing a PM simulation (which lacks small-scale power by design) to a full N-body reference will conflate "PM-methodological deficiency" with "numerical error," rendering the "failure boundary" analysis scientifically ambiguous.
+*   **Redundancy/Weak Link**: The "failure boundary" concept is a re-statement of the well-known Nyquist limit of the mesh ($k_{Ny} = \pi N_{mesh} / L_{box}$). You are essentially measuring the grid-scale suppression inherent to CIC assignment, which is a standard textbook result, not a novel performance profile.
+*   **Strategic Pivot**: Shift focus from "mapping failure boundaries" (which are theoretically predicted) to **"Computational Efficiency vs. Precision Trade-off."** Use the Warp implementation to perform a parameter sweep of *time-step sizes* and *mesh resolutions* to generate a Pareto-optimal front of (Wall-clock time) vs. (P(k) accuracy). This provides actionable data for users of the Warp framework rather than re-deriving the known limitations of the PM algorithm.
+*   **Physical Reality**: The proposal ignores that the ZA-based ICs (used here) will introduce a systematic power deficit at high-$k$ compared to the 2LPT-based Quijote reference. This will dominate your error budget, potentially masking the very "leapfrog integration errors" you intend to isolate.
+\end{CRITIC}
+
+
+###### PROMPT BEGINS ########
+Human: 
+**Role**: Senior Research Scientific.
+**Objective**: Synthesize a primary research idea with expert criticism to produce a refined, groundbreaking, and technically feasible scientific objective.
+
+**Task**:
+You are in an iterative refinement loop (Iteration: 2). Your goal is to take the "Previous Idea," pass it through the filter of the "Critiques," and produce a "Hardened Idea" that is more scientifically rigorous and original than its predecessor.
+
+**Refinement Principles**:
+1. **Address Caveats**: If the critic mentioned a lack of feasibility, adjust the scope of the idea to fit the 'Data Description.'
+2. **Increase Specificity**: Move away from generic goals. Use the statistics and variables found in the data description to make the idea more concrete.
+3. **Internalize Feedback**: Do not explicitly mention the criticism or explain your changes. Instead, weave the solutions directly into the new version of the idea.
+4. **Maintain Grounding**: Ensure the "groundbreaking" aspect remains physically possible within the provided dataset's constraints.
+
+**Operational Constraints**:
+- **Brevity**: Keep the description concise but high-density (max 6 sentences).
+- **Format**: Do not include introductory text or meta-commentary about the process.
+- **Fidelity**: Stick strictly to the guidelines and physical realities described in the data description.
+- The idea must contain a title and a description of the idea
+
+**Input Data**:
+- **Data Description**: # GPU-Accelerated Cosmological N-body Simulation with NVIDIA Warp
+
+## Overview
+
+This project implements a cosmological N-body (PM — Particle-Mesh) simulation using NVIDIA Warp on GPU, then validates it against reference Quijote power spectra. The goal is to quantify both the physical accuracy (P(k) comparison) and the computational speedup vs. equivalent CPU code.
+
+## Simulation Parameters (matching Quijote fiducial)
+
+| Parameter | Value |
+|---|---|
+| Box size | 1000 Mpc/h |
+| N_particles | 512³ = 134,217,728 |
+| Mesh resolution | 512³ (or 1024³) |
+| Cosmology | Planck 2018 fiducial |
+| Ωm | 0.3175 |
+| Ωb | 0.049 |
+| h | 0.6711 |
+| ns | 0.9624 |
+| σ8 | 0.834 |
+| Starting redshift | z_init = 127 |
+| Output redshifts | z = 0, 0.5, 1, 2 |
+| Random seed | 0 (fixed, reproducible) |
+
+## Initial Conditions
+
+ICs are generated on-the-fly using the Zel'dovich Approximation (ZA) / first-order Lagrangian Perturbation Theory:
+1. Compute linear matter power spectrum P(k, z_init) using `camb` with the Quijote fiducial cosmology
+2. Generate a Gaussian random field in Fourier space using P(k) and a fixed random seed
+3. Displace particles from a regular grid using the ZA displacement field
+4. Assign velocities using the ZA velocity field (∇φ / (aH f))
+
+Note: Quijote uses 2LPT (2nd-order LPT) for ICs. Our ZA ICs introduce small differences at high-k that are expected and will be characterized.
+
+## Simulation Code: NVIDIA Warp (GPU)
+
+- **Framework**: NVIDIA Warp 1.13.0 (`warp-lang`)
+- **Device**: NVIDIA RTX PRO 6000 Blackwell (95 GiB VRAM, sm_120, CUDA 13.0)
+- **Method**: Particle-Mesh (PM) — O(N log N) complexity
+  - CIC (Cloud-in-Cell) mass assignment to 512³ mesh
+  - FFT-based Poisson solver: ∇²φ = -4πGρ → φ(k) = -4πGρ(k)/k²
+  - Gradient of potential → forces on particles
+  - Leapfrog integration (kick-drift-kick scheme)
+- **Time stepping**: ~50-100 steps from z=127 to z=0, step size controlled by Courant condition
+
+## Reference Data: Quijote Power Spectra
+
+The Quijote fiducial P(k) at z=0 is publicly available at:
+`https://raw.githubusercontent.com/franciscovillaescusa/Quijote-simulations/master/summary_statistics/Pk/Pk_m_z=0_0.txt`
+
+This provides the non-linear matter power spectrum P(k) averaged over multiple Quijote realizations. The comparison metric is:
+- Ratio P_warp(k) / P_quijote(k) across k range 0.01–1 h/Mpc
+- Target: agreement within 5% for k < 0.3 h/Mpc
+
+## Speedup Benchmark
+
+Compare wall-clock time for:
+- Full PM simulation (512³): Warp GPU vs. equivalent numpy/scipy CPU implementation
+- Per-step breakdown: mass assignment, FFT, force interpolation, integration
+- Memory usage: GPU vs. CPU
+
+## File Paths
+
+All generated files are saved to the project data directory:
+- `/home/node/work/projects/cosmo_nbody_v1/data/` — IC files, snapshot outputs, P(k) outputs
+- No pre-existing input files; everything is generated in-code
+
+## Software Dependencies (all available in /opt/denario-venv)
+
+- `warp-lang==1.13.0` — GPU-accelerated kernels
+- `camb==1.6.6` — linear matter power spectrum
+- `numpy`, `scipy` — FFT, array operations
+- `matplotlib` — plotting
+
+- **Previous Versions**: 
+
+
+
+Iteration 0:
+Idea: **Title**: Quantifying Resolution-Dependent Force Softening and IC-Induced Bias in GPU-Accelerated PM Simulations
+
+**Description**: This research characterizes the interplay between Lagrangian Perturbation Theory (LPT) errors and PM-mesh discretization by systematically comparing $512^3$ and $1024^3$ mesh resolutions within a $1000$ Mpc/h box. By isolating the $k$-range where the PM force-softening scale dominates the power spectrum suppression, we establish a formal validity threshold for the Warp-based simulation framework against the Quijote fiducial. We will quantify the specific $k$-space deviation ($P_{warp}/P_{Quijote}$) across $z \in \{0, 0.5, 1, 2\}$, mapping the transition from IC-dominated ZA inaccuracies to grid-dominated discretization errors. This analysis will produce a transfer function that corrects for PM-softening, providing a high-fidelity calibration for downstream emulator training. The results will establish the precise operational limits of the NVIDIA Warp implementation, enabling users to distinguish physical signal from numerical artifacts at the Nyquist limit.
+
+
+Iteration 1:
+Idea: **Title**: Benchmarking NVIDIA Warp PM-Dynamics: Quantifying Grid-Discretization and Temporal Integration Errors against Theoretical PM Limits
+
+**Description**: This study isolates the numerical performance of a GPU-accelerated Particle-Mesh (PM) framework by measuring the divergence of its power spectrum $P(k)$ from the theoretical Zel'dovich Approximation (ZA) and second-order Lagrangian Perturbation Theory (2LPT) predictions. By executing simulations on a $1000$ Mpc/h volume with $512^3$ particles, we quantify the specific $k$-space transition where grid-induced force anisotropy and leapfrog integration errors supersede the expected PM-model output. We utilize the Quijote fiducial power spectra not as a target for correction, but as a defined "failure boundary" to map the exact $k$-range where pure PM dynamics cease to capture the linear-to-non-linear transition. This benchmarking establishes the operational fidelity of the NVIDIA Warp implementation by isolating the impact of CIC mass-assignment artifacts and Courant-limited time stepping on the matter power spectrum. The final output provides a rigorous performance profile of the Warp-based Poisson solver, characterizing the computational speedup versus the specific numerical noise floor inherent to the PM approach.
+
+- **Critical Feedback**: *   **Data-Hypothesis Mismatch**: The proposal claims to isolate "leapfrog integration errors" and "grid-induced force anisotropy," but the provided data description lacks the high-resolution reference simulations (e.g., N-body with force softening or higher-order solvers) required to decouple these specific numerical artifacts from the inherent limitations of the PM method itself.
+*   **Feasibility Gap**: You propose mapping the transition where PM dynamics "cease to capture the linear-to-non-linear transition." However, the Quijote reference data is a *full* N-body simulation (including non-linear collapse). Comparing a PM simulation (which lacks small-scale power by design) to a full N-body reference will conflate "PM-methodological deficiency" with "numerical error," rendering the "failure boundary" analysis scientifically ambiguous.
+*   **Redundancy/Weak Link**: The "failure boundary" concept is a re-statement of the well-known Nyquist limit of the mesh ($k_{Ny} = \pi N_{mesh} / L_{box}$). You are essentially measuring the grid-scale suppression inherent to CIC assignment, which is a standard textbook result, not a novel performance profile.
+*   **Strategic Pivot**: Shift focus from "mapping failure boundaries" (which are theoretically predicted) to **"Computational Efficiency vs. Precision Trade-off."** Use the Warp implementation to perform a parameter sweep of *time-step sizes* and *mesh resolutions* to generate a Pareto-optimal front of (Wall-clock time) vs. (P(k) accuracy). This provides actionable data for users of the Warp framework rather than re-deriving the known limitations of the PM algorithm.
+*   **Physical Reality**: The proposal ignores that the ZA-based ICs (used here) will introduce a systematic power deficit at high-$k$ compared to the 2LPT-based Quijote reference. This will dominate your error budget, potentially masking the very "leapfrog integration errors" you intend to isolate.
+
+Respond in the following format:
+
+\\begin{IDEA}
+<IDEA>
+\\end{IDEA}
+
+In <IDEA>, put the refined idea. 
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-3.1-flash-lite-preview] ########
+\begin{IDEA}
+**Title**: Pareto-Optimal Calibration of GPU-Accelerated PM Dynamics: Balancing Temporal Integration and Mesh Resolution for Cosmological Emulators
+
+**Description**: This research quantifies the computational trade-offs of an NVIDIA Warp-based Particle-Mesh simulation by constructing a Pareto-optimal front of wall-clock time versus $P(k)$ accuracy across varying time-step counts (50–100) and mesh resolutions ($512^3$ vs $1024^3$). To decouple ZA-induced power deficits from numerical artifacts, we compute a baseline transfer function between our ZA-generated ICs and the Quijote 2LPT initial conditions at $z=127$, allowing for the isolation of post-initialization numerical convergence. By mapping the $P_{warp}(k)/P_{Quijote}(k)$ ratio within the $0.01–1\ h/\text{Mpc}$ range, we identify the specific temporal and spatial resolution settings that minimize runtime while maintaining the target $<5\%$ error threshold for $k < 0.3\ h/\text{Mpc}$. This analysis provides a rigorous calibration framework for the Warp framework, establishing the minimum computational budget required to achieve high-fidelity power spectra. The final result is a performance-accuracy map that enables developers to optimize GPU resource allocation for large-scale cosmological parameter inference.
+\end{IDEA}
+

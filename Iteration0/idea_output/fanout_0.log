@@ -1,0 +1,142 @@
+
+###### PROMPT BEGINS ########
+Human: 
+**Role**: Senior Scientific Lead and Peer Reviewer.
+**Objective**: Critically evaluate 10 proposed research ideas and select the single most impactful project to move into the planning phase.
+
+**Evaluation Framework**:
+To determine the "largest scientific impact," you must weigh each idea against the following four pillars:
+1. **Feasibility**: Given the constraints in the 'Data Description,' can this project actually be executed with the available variables?
+2. **Novelty**: Does the idea offer a fresh perspective, or is it a standard, derivative analysis?
+3. **Rigour**: Does the idea suggest a deep investigation into the underlying physics/logic of the data?
+4. **Utility**: Will the results provide actionable insights or significantly enhance our understanding of the system?
+5. The idea selected should be as different as possible to any previous ideas.
+
+**Task**:
+1. Review the proposed 10 research ideas along with any previous ideas.
+2. Review the 'Data Description' to ensure the ideas are physically and statistically grounded.
+3. Select the **one** idea that best balances innovation with scientific feasibility.
+4. The selected idea must contain a title and a description of it.
+
+**Operational Constraints**:
+- Do not provide a list of pros and cons.
+- Do not modify the original text of the idea.
+- Provide **only** the text of the selected idea within the required tags.
+
+Data description:
+# GPU-Accelerated Cosmological N-body Simulation with NVIDIA Warp
+
+## Overview
+
+This project implements a cosmological N-body (PM — Particle-Mesh) simulation using NVIDIA Warp on GPU, then validates it against reference Quijote power spectra. The goal is to quantify both the physical accuracy (P(k) comparison) and the computational speedup vs. equivalent CPU code.
+
+## Simulation Parameters (matching Quijote fiducial)
+
+| Parameter | Value |
+|---|---|
+| Box size | 1000 Mpc/h |
+| N_particles | 512³ = 134,217,728 |
+| Mesh resolution | 512³ (or 1024³) |
+| Cosmology | Planck 2018 fiducial |
+| Ωm | 0.3175 |
+| Ωb | 0.049 |
+| h | 0.6711 |
+| ns | 0.9624 |
+| σ8 | 0.834 |
+| Starting redshift | z_init = 127 |
+| Output redshifts | z = 0, 0.5, 1, 2 |
+| Random seed | 0 (fixed, reproducible) |
+
+## Initial Conditions
+
+ICs are generated on-the-fly using the Zel'dovich Approximation (ZA) / first-order Lagrangian Perturbation Theory:
+1. Compute linear matter power spectrum P(k, z_init) using `camb` with the Quijote fiducial cosmology
+2. Generate a Gaussian random field in Fourier space using P(k) and a fixed random seed
+3. Displace particles from a regular grid using the ZA displacement field
+4. Assign velocities using the ZA velocity field (∇φ / (aH f))
+
+Note: Quijote uses 2LPT (2nd-order LPT) for ICs. Our ZA ICs introduce small differences at high-k that are expected and will be characterized.
+
+## Simulation Code: NVIDIA Warp (GPU)
+
+- **Framework**: NVIDIA Warp 1.13.0 (`warp-lang`)
+- **Device**: NVIDIA RTX PRO 6000 Blackwell (95 GiB VRAM, sm_120, CUDA 13.0)
+- **Method**: Particle-Mesh (PM) — O(N log N) complexity
+  - CIC (Cloud-in-Cell) mass assignment to 512³ mesh
+  - FFT-based Poisson solver: ∇²φ = -4πGρ → φ(k) = -4πGρ(k)/k²
+  - Gradient of potential → forces on particles
+  - Leapfrog integration (kick-drift-kick scheme)
+- **Time stepping**: ~50-100 steps from z=127 to z=0, step size controlled by Courant condition
+
+## Reference Data: Quijote Power Spectra
+
+The Quijote fiducial P(k) at z=0 is publicly available at:
+`https://raw.githubusercontent.com/franciscovillaescusa/Quijote-simulations/master/summary_statistics/Pk/Pk_m_z=0_0.txt`
+
+This provides the non-linear matter power spectrum P(k) averaged over multiple Quijote realizations. The comparison metric is:
+- Ratio P_warp(k) / P_quijote(k) across k range 0.01–1 h/Mpc
+- Target: agreement within 5% for k < 0.3 h/Mpc
+
+## Speedup Benchmark
+
+Compare wall-clock time for:
+- Full PM simulation (512³): Warp GPU vs. equivalent numpy/scipy CPU implementation
+- Per-step breakdown: mass assignment, FFT, force interpolation, integration
+- Memory usage: GPU vs. CPU
+
+## File Paths
+
+All generated files are saved to the project data directory:
+- `/home/node/work/projects/cosmo_nbody_v1/data/` — IC files, snapshot outputs, P(k) outputs
+- No pre-existing input files; everything is generated in-code
+
+## Software Dependencies (all available in /opt/denario-venv)
+
+- `warp-lang==1.13.0` — GPU-accelerated kernels
+- `camb==1.6.6` — linear matter power spectrum
+- `numpy`, `scipy` — FFT, array operations
+- `matplotlib` — plotting
+
+
+Proposed ideas:
+1. **Higher-Order Lagrangian Perturbation Thresholds**: Determine the specific scale $k$ at which the simulation’s ZA-based initial conditions deviate from the Quijote 2LPT reference data beyond 5%. This identifies the "transient memory" of initial condition orders in PM-based cosmological evolution.
+
+2. **GPU-Memory Scaling Laws**: Quantify the relationship between mesh resolution (increasing beyond 512³) and GPU warp occupancy/memory bandwidth saturation. This establishes the theoretical limit of the NVIDIA Blackwell architecture for single-node Particle-Mesh simulations.
+
+3. **Time-Stepping Sensitivity Analysis**: Investigate how varying the Courant-Friedrichs-Lewy (CFL) condition impacts the small-scale power spectrum $P(k)$ at high $k$. This defines the optimal temporal resolution required to capture non-linear growth without introducing artificial numerical damping.
+
+4. **Stochasticity in Force Interpolation**: Analyze the impact of CIC (Cloud-in-Cell) mass assignment noise on the velocity field dispersion compared to higher-order schemes. This isolates the contribution of interpolation noise to the overall power spectrum error budget.
+
+5. **Cosmological Parameter Sensitivity Gradients**: Explore how small perturbations in $\Omega_m$ and $\sigma_8$ manifest in the Warp-based simulation’s $P(k)$ relative to the Quijote fiducial. This provides a baseline for using high-speed Warp simulations in rapid cosmological parameter inference.
+
+6. **Spectral Divergence via FFT Precision**: Compare the $P(k)$ output using single-precision versus mixed-precision FFTs on the Blackwell hardware. This determines if reduced precision significantly biases the non-linear matter distribution or if it is suitable for large-scale structure forecasting.
+
+7. **The "Speed-Accuracy" Pareto Front**: Map the computational cost of the simulation against the accuracy of the $P(k)$ recovery across various mesh resolutions. This defines the optimal "efficiency point" where simulation wall-clock time is minimized while maintaining sub-5% error.
+
+8. **Non-Linear Growth Bias Mapping**: Identify the specific redshift $z$ where the divergence between ZA-generated ICs and 2LPT-based reference data becomes statistically indistinguishable in the $P(k)$ domain. This uncovers the epoch where non-linear gravitational collapse "erases" the initial condition error.
+
+9. **Halo Mass Function (HMF) Discrepancy**: Compare the HMF derived from the Warp simulation against the Quijote reference to determine if PM-based integration accurately captures the abundance of high-mass clusters. This assesses the utility of the Warp framework for precision cluster cosmology.
+
+10. **Memory-Latency Bottleneck Identification**: Decompose the simulation cycle to determine whether the performance bottleneck is dominated by global memory access during particle-to-mesh interpolation or by compute-bound FFT operations. This informs future kernel optimization strategies for N-body codes on Blackwell architecture.
+
+
+
+
+
+
+
+Respond in exactly the following format:
+
+\\begin{IDEA}
+<IDEA>
+\\end{IDEA}
+
+In <IDEA>, put the idea you have selected
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-3.1-flash-lite-preview] ########
+\begin{IDEA}
+8. **Non-Linear Growth Bias Mapping**: Identify the specific redshift $z$ where the divergence between ZA-generated ICs and 2LPT-based reference data becomes statistically indistinguishable in the $P(k)$ domain. This uncovers the epoch where non-linear gravitational collapse "erases" the initial condition error.
+\end{IDEA}
+
