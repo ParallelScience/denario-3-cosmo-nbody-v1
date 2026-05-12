@@ -1,0 +1,8 @@
+{
+  "primary_category": "astro-ph.CO",
+  "secondary_categories": [
+    "astro-ph.IM",
+    "cs.MS"
+  ],
+  "justification": "The paper focuses on cosmological simulations (large-scale structure, dark matter) which fits astro-ph.CO, while the development of GPU-accelerated simulation methods and software implementation falls under astro-ph.IM and the computational science (cs.MS) category."
+}
