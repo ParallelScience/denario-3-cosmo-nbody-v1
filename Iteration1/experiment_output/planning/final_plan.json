@@ -1,0 +1,99 @@
+{
+    "sub_tasks": [
+        {
+            "bullet_points": [
+                "Use camb to compute the linear matter power spectrum P(k) at z_init=127 with Quijote fiducial cosmology (Ωm=0.3175, Ωb=0.049, h=0.6711, ns=0.9624, σ8=0.834); request redshifts=[0, z_init] and use pk_arr[1], normalized with s8_all[-1]",
+                "Generate a Gaussian random field in Fourier space with fixed seed=0 using amplitude = N³ / sqrt(2 * V) * sqrt(P_lin(k, z_init))",
+                "Compute ZA displacement field (psi) via FFT-based Poisson solve on the density field",
+                "Displace particles from a regular 512³ grid using psi, apply periodic boundary conditions",
+                "Assign ZA velocities using vel_factor = a_init * H(a_init) * f_growth, where H(a) = 100 * sqrt(Ωm/a³ + ΩΛ) in km/s/(Mpc/h)",
+                "Save particle positions (float32, Mpc/h) and velocities (float32, km/s) to disk as compressed numpy arrays",
+                "Print summary statistics: min/max positions, min/max velocities, RMS displacement, growth factor f at z_init, sigma8 at z_init",
+                "Compute the power spectrum of the IC density field (via CIC mass assignment + FFT) and compare against the CAMB linear P(k) at z_init=127; print the ratio P_IC(k)/P_CAMB(k) at several k values (e.g., k=0.05, 0.1, 0.2, 0.5 h/Mpc)",
+                "Save the IC P(k) arrays (k, P_IC, P_CAMB) to disk for use in Step 6 plotting"
+            ],
+            "sub_task": "Generate Initial Conditions and Verify ZA Displacement",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Implement CIC mass assignment as a Warp GPU kernel: for each particle, deposit mass to the 8 surrounding mesh cells with trilinear weights using atomic adds; the density field must be the overdensity delta = rho/rho_mean - 1 (not raw particle count)",
+                "Implement FFT-based Poisson solver using torch.fft.rfftn on GPU: compute k² = kx²+ky²+kz², set k=0 mode to zero, solve phi(k) = -delta(k)/k² (the comoving Poisson scale factor 1.5*Ωm*H0²/a is applied at the force interpolation stage, not inside the Poisson solve)",
+                "Implement force interpolation as a Warp GPU kernel: compute gradient of phi in Fourier space (multiply by -i*k for each dimension), irfftn to get force field, apply comoving scale = 1.5*Ωm*H0²/a, then CIC-interpolate forces to particle positions",
+                "Implement leapfrog kick-drift-kick: dt_kick = da/(a²*H(a)), dt_drift = da/(a²*H(a)), with accel in (km/s)²/(Mpc/h)",
+                "Perform a Frozen Force test: place particles on a regular grid, compute forces, verify forces are near zero by symmetry; print max absolute force on the regular grid",
+                "Compare GPU CIC + Poisson solve output against a CPU numpy/scipy reference on a small 64³ test grid; print maximum absolute difference between GPU and CPU force fields",
+                "Save the verified solver as a reusable Python module for import in Step 3"
+            ],
+            "sub_task": "Implement and Verify the Warp GPU PM Solver (Frozen Force Test)",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Load ICs from Step 1; import the PM solver module from Step 2",
+                "Implement adaptive time-stepping with Δa = const * a giving ~80 steps total from a_init=1/128 to a_final=1.0",
+                "At each step, perform kick-drift-kick leapfrog using the exact equations from the hardware constraints",
+                "Save snapshots at z=2, 1, 0.5, 0 as float32 compressed numpy arrays (positions in Mpc/h, velocities in km/s); time and print GPU-to-CPU transfer and disk I/O separately from simulation step timing",
+                "Track and print wall-clock time per step broken down by sub-operation (CIC, FFT/Poisson, force interpolation, integration) and total simulation time",
+                "Print GPU VRAM usage at start, after IC load, and after simulation completes",
+                "Ensure the full simulation completes within 1500 seconds"
+            ],
+            "sub_task": "Run Full GPU PM Simulation from z=127 to z=0",
+            "sub_task_agent": "engineer",
+            "code_execution_timeout": 1800
+        },
+        {
+            "bullet_points": [
+                "Implement an equivalent PM simulation using only numpy/scipy (no Warp, no GPU)",
+                "Run at both 128³ and 256³ particle counts (downsampled from the Step 1 ICs) for 5 steps each to empirically measure per-step timing at two resolutions",
+                "Measure wall-clock time for each PM sub-step: CIC mass assignment, FFT/Poisson solve, force interpolation, leapfrog integration",
+                "Determine the empirical scaling exponent from the 128³ vs 256³ timing ratio for each sub-step (expected O(N) for CIC, O(N log N) for FFT)",
+                "Extrapolate total CPU time for a full 512³ simulation using the empirically measured scaling exponents (not assumed fixed exponents)",
+                "Print a detailed timing comparison table: GPU (from Step 3) vs CPU (extrapolated) for each sub-step and total; print the speedup factor per sub-step and overall",
+                "Save all timing results to disk as a JSON file for use in Step 6 plotting"
+            ],
+            "sub_task": "CPU Baseline PM Simulation for Benchmarking",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Load available snapshots from Step 3; if any intermediate snapshot (z=0.5, 1, or 2) is missing, print a clear warning and proceed with whatever snapshots are available",
+                "For each available snapshot, perform CIC mass assignment to a 512³ mesh, apply 3D FFT (torch.fft.rfftn), compute P(k) by averaging |delta(k)|² in radial k-bins",
+                "Use logarithmically spaced k-bins between k_min = 2π/BOX and k_Nyquist = π*N/BOX with at least 50 bins; report bin centers as the mean k of all modes in each bin",
+                "Apply CIC window function deconvolution: W_CIC(k) = sinc²(kx/2kN) * sinc²(ky/2kN) * sinc²(kz/2kN)",
+                "Subtract shot noise: P_shot = V/N_particles",
+                "Download the Quijote reference P(k) from the provided URL; save locally",
+                "Save all P(k) arrays (k, P_warp, P_quijote where applicable) to disk as numpy arrays",
+                "Print P(k) values at k=0.1, 0.3, 1.0 h/Mpc for each redshift, and the ratio P_warp/P_quijote at those k values for z=0"
+            ],
+            "sub_task": "Compute Matter Power Spectrum P(k) from Simulation Snapshots",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Load all saved results from Steps 1, 3, 4, and 5",
+                "Figure 1 (2×4 multi-panel): Top row shows absolute P(k) (Warp simulation vs Quijote reference, log-log) for z=0, 0.5, 1, 2 (one column per redshift); bottom row shows ratio P_warp/P_quijote with ±5% band marked and k=0.3 h/Mpc threshold labeled",
+                "Figure 2 (2-panel side by side): Left panel is a grouped bar chart of per-step wall-clock time (CIC, FFT, force interp, integration) for GPU vs CPU with speedup annotations; right panel shows IC P(k) verification (P_IC vs P_CAMB at z=127 on log-log axes with ratio inset)",
+                "Figure 3 (standalone): 2D projected density map of the z=0 snapshot (sum along one axis) showing large-scale structure, with colorbar",
+                "Save all three figures with timestamps to the data directory",
+                "Print the overall GPU speedup factor and the k-range over which P_warp/P_quijote is within 5%"
+            ],
+            "sub_task": "Generate All Validation and Benchmark Plots",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Summarize IC generation: ZA displacement RMS statistics, sigma8 at z_init verification, growth factor f at z_init, and the IC P(k)/P_CAMB ratio at several k values confirming self-consistency",
+                "Report PM solver verification: frozen force test maximum residual force on a regular grid, and maximum absolute difference between GPU and CPU force fields on the 64³ test grid",
+                "Report full GPU simulation performance: total wall-clock time, per-step breakdown by sub-operation (CIC, FFT, force interp, integration), GPU VRAM usage, and snapshot I/O timing",
+                "Report CPU baseline timing at 128³ and 256³, empirical scaling exponents per sub-step, extrapolated 512³ CPU time, and the resulting GPU speedup factor (total and per sub-step)",
+                "Report P(k) comparison at all available redshifts: absolute values at k=0.1, 0.3, 1.0 h/Mpc, ratio P_warp/P_quijote at z=0, and the k-range over which agreement is within 5%",
+                "Discuss physical reasons for discrepancies: ZA vs 2LPT ICs (expected few-percent suppression at k~0.3 h/Mpc growing at higher k due to unresolved decaying mode transients), PM force resolution limits, and shot noise contribution",
+                "Discuss computational advantages of the Warp GPU implementation relative to the CPU baseline",
+                "Reference Figure 1 (P(k) multi-panel), Figure 2 (timing + IC verification), and Figure 3 (density projection) by description"
+            ],
+            "sub_task": "Write the Full Results Section",
+            "sub_task_agent": "researcher"
+        }
+    ]
+}
