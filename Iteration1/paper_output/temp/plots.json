@@ -1,0 +1,17 @@
+{
+  "image0": {
+    "key": "image0",
+    "name": "step_6_validation_plots_1778582031.png",
+    "caption": "Validation of the corrected N-body simulation dynamics at z=0, comparing the matter power spectrum from the simulation (P\\_sim) against the CAMB HaloFit nonlinear prediction (P\\_CAMB\\_NL). After fixing critical bugs in the leapfrog integrator related to Hubble drag and the initial growth rate, the simulation achieves agreement within 3\u201310\\% for wavenumbers k < 0.3 h/Mpc. This result confirms the physical accuracy of the simulation, with the slight systematic power deficit at k > 0.1 h/Mpc being consistent with the use of Zel'dovich Approximation initial conditions."
+  },
+  "image1": {
+    "key": "image1",
+    "name": "pk_comparison.png",
+    "caption": "The matter power spectrum P(k) at redshift z=0 from the corrected Particle-Mesh (PM) simulation compared to the CAMB HaloFit nonlinear prediction (left), and their ratio (right). The simulation reproduces the theoretical power spectrum to within 3\u201310\\% for k < 0.3 h/Mpc. The slight systematic power deficit is attributed to the use of first-order Zel'dovich Approximation initial conditions, while the suppression at k > 0.3 h/Mpc is due to the finite grid resolution of the PM method."
+  },
+  "image2": {
+    "key": "image2",
+    "name": "density.png",
+    "caption": "Projected particle density from the corrected N-body simulation with 512\u00b3 particles in a 1000 Mpc/h box. The plot contrasts the nearly uniform initial conditions at z=127 (left) with the final state at z=0 (right), where gravitational evolution has formed the cosmic web. This simulation incorporates corrected dynamics, including the Hubble drag and the appropriate initial growth rate, yielding a final power spectrum in agreement with theoretical predictions to within 10\\% for k < 0.3 h/Mpc."
+  }
+}

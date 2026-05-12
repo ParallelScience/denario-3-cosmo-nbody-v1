@@ -1,0 +1,24 @@
+\documentclass[]{article}
+
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{natbib}
+\usepackage{graphicx} 
+
+
+\begin{document}
+
+
+
+In this work, we addressed the computational challenge of generating large ensembles of cosmological N-body simulations by developing and validating a new Particle-Mesh (PM) code accelerated on Graphics Processing Units (GPUs) using the NVIDIA Warp framework. The goal was to create a tool capable of rapidly producing simulations with sufficient accuracy for statistical cosmological applications.
+
+Our simulation evolves $512^3$ particles in a $(1000 \, \text{Mpc}/h)^3$ comoving volume from an initial redshift of $z=127$ down to $z=0$. The initial conditions were generated using the first-order Zel'dovich Approximation. The gravitational dynamics were computed using a PM algorithm on a $512^3$ grid, with a leapfrog integrator that correctly incorporates the Hubble drag term to account for cosmic expansion.
+
+The primary result of this work is the exceptional performance of the GPU implementation. We demonstrated a speedup of over 1,300 times compared to an equivalent multi-threaded CPU code, enabling a full simulation to be completed in approximately 10.5 seconds. This acceleration is primarily driven by the massive parallelism of the GPU architecture, which is particularly effective for the particle-based mass assignment and force interpolation steps of the PM algorithm.
+
+We rigorously validated the physical accuracy of our simulation by comparing the final matter power spectrum at $z=0$ against non-linear theoretical predictions from CAMB. Our results show excellent agreement, reproducing the theoretical power spectrum to within 3\% on large scales ($k \le 0.07 \, h/\text{Mpc}$) and within 10\% for wavenumbers up to $k \approx 0.3 \, h/\text{Mpc}$. The remaining small deviations are consistent with the known limitations of the methods employed. The slight power deficit on intermediate scales is a characteristic feature of using first-order Zel'dovich Approximation initial conditions, while the loss of power at $k > 0.3 \, h/\text{Mpc}$ is due to the finite resolution of the PM grid. Our analysis also highlighted the critical importance of correctly implementing physical effects in the time integrator; the inclusion of the Hubble drag term was essential for achieving an accurate final clustering amplitude.
+
+We have established that our GPU-accelerated code is a validated and powerful tool that achieves a compelling balance between computational speed and physical accuracy. Its performance makes it highly suitable for applications requiring the rapid generation of large numbers of mock universes, such as for covariance matrix estimation and the training of cosmological emulators.
+
+\end{document}
+                

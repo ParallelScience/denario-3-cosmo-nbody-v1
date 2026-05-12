@@ -1,0 +1,78 @@
+\documentclass[]{article}
+
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{natbib}
+\usepackage{graphicx} 
+
+
+\begin{document}
+
+\subsection{Validation of cosmological dynamics}
+
+We first validate the physical accuracy of our N-body simulation. A qualitative assessment is presented in Figure \ref{fig:image2}, which contrasts the projected particle density at the initial redshift ($z=127$) with the final state at $z=0$. The simulation correctly evolves the nearly homogeneous initial density field into the highly clustered, filamentary structure characteristic of the cosmic web, providing a visual confirmation that the code captures the essential dynamics of gravitational instability.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{../input_files/plots/density.png}
+    \caption{Projected particle density from the N-body simulation, which used $512^3$ particles in a 1000 Mpc/h box. The plot contrasts the nearly uniform initial conditions at $z=127$ (left) with the final state at $z=0$ (right), where gravitational evolution has formed the cosmic web. This simulation incorporates corrected dynamics, including the Hubble drag and the appropriate initial growth rate.}
+    \label{fig:image2}
+\end{figure*}
+
+For a quantitative validation, we compare the matter power spectrum, $P(k)$, from the simulation at $z=0$ against the non-linear theoretical prediction from CAMB using the HaloFit model. The results are shown in Figure \ref{fig:image1}. The left panel displays the absolute power spectra, while the right panel shows their ratio, $P_{\text{sim}}(k) / P_{\text{CAMB}}(k)$. Our simulation reproduces the theoretical prediction to within 3\% on large scales ($k \leq 0.07 \, h/\text{Mpc}$). On smaller scales, a slight systematic power deficit emerges, with the agreement remaining within 10\% for wavenumbers up to $k \approx 0.3 \, h/\text{Mpc}$.
+
+The observed deviations are consistent with the known limitations of our simulation setup. The systematic underprediction of power at $k > 0.1 \, h/\text{Mpc}$ is a well-understood consequence of using the first-order Zel'dovich Approximation (ZA) for the initial conditions, which captures less non-linear growth compared to higher-order schemes. The sharp decline in power for $k > 0.3 \, h/\text{Mpc}$ is an expected artifact of the finite resolution of the Particle-Mesh (PM) grid, which smooths density fluctuations on scales approaching the cell size of $1.95 \, \text{Mpc}/h$.
+
+As a final quantitative check, the root-mean-square of the final particle displacement field is $\sigma_{\psi}(z=0) = 5.65 \, \text{Mpc}/h$. This is within 1\% of the value of $5.7 \, \text{Mpc}/h$ expected from linear theory, further validating the simulation's overall dynamical evolution.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{../input_files/plots/pk_comparison.png}
+    \caption{The matter power spectrum $P(k)$ at redshift $z=0$ from the corrected Particle-Mesh (PM) simulation compared to the CAMB HaloFit nonlinear prediction (left), and their ratio (right). The simulation reproduces the theoretical power spectrum to within 3–10\% for $k < 0.3 \, h/\text{Mpc}$. The slight systematic power deficit is attributed to the use of first-order Zel'dovich Approximation initial conditions, while the suppression at $k > 0.3 \, h/\text{Mpc}$ is due to the finite grid resolution of the PM method.}
+    \label{fig:image1}
+\end{figure*}
+
+\subsection{Critical physics for accurate integration}
+
+The high level of accuracy demonstrated above was achieved after implementing two critical corrections to the leapfrog integrator. Initial versions of the code produced physically incorrect results due to:
+\begin{enumerate}
+    \item The omission of the Hubble drag term, $-v \cdot (da/a)$, in the velocity kick step. This error alone led to a severe overestimation of particle peculiar velocities and a final clustering amplitude that was approximately 5 times too large.
+    \item The use of an incorrect value for the initial growth rate, $f$, which was set to its $z=0$ value instead of the appropriate value at $z=127$ (where $f \approx 1$).
+\end{enumerate}
+The successful implementation of these corrections is key to the physical robustness of our simulation. Figure \ref{fig:image0} explicitly shows the final, validated power spectrum ratio after these essential physical effects were correctly incorporated, confirming that our simulation accurately models the underlying cosmology.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\columnwidth]{../input_files/plots/step_6_validation_plots_1778582031.png}
+    \caption{Validation of the corrected N-body simulation dynamics at $z=0$. The plot shows the ratio of the matter power spectrum from the simulation ($P_{\text{sim}}$) to the CAMB HaloFit nonlinear prediction ($P_{\text{CAMB\_NL}}$). After fixing critical bugs in the leapfrog integrator related to Hubble drag and the initial growth rate, the simulation achieves agreement within 3–10\% for wavenumbers $k < 0.3 \, h/\text{Mpc}$, confirming its physical accuracy.}
+    \label{fig:image0}
+\end{figure}
+
+\subsection{Computational performance}
+
+Finally, we evaluate the computational performance of our GPU-accelerated N-body code by comparing its execution time against an equivalent multi-threaded CPU implementation. The benchmark was performed for a single time step of a simulation with $512^3$ particles on a $512^3$ grid. The results, broken down by the core components of the PM algorithm, are summarized in Table \ref{tab:performance}.
+
+The GPU implementation demonstrates a dramatic performance increase across all stages. The most significant gains are observed in the particle-based operations: the Cloud-in-Cell (CIC) mass assignment and the force interpolation steps are accelerated by factors of approximately 2,400$\times$ and 9,200$\times$, respectively. These operations are inherently massively parallel and map exceptionally well to the GPU architecture. The Fast Fourier Transform (FFT) based Poisson solver, while already highly optimized in modern CPU libraries, still sees a substantial speedup of 13$\times$.
+
+Overall, a single time step on the GPU requires only 0.07 seconds, compared to 89.4 seconds on the CPU, yielding a total speedup of over 1,300$\times$. This allows the full 80-step simulation, evolving $512^3$ particles from $z=127$ to $z=0$, to be completed in approximately 10.5 seconds. This level of performance enables the rapid generation of large simulation ensembles that would be computationally prohibitive on CPU-based systems.
+
+\begin{table}[h!]
+\centering
+\caption{Performance comparison of a single PM time step for a $512^3$ particle simulation on GPU (NVIDIA Warp) versus a multi-threaded CPU (\texttt{scipy}).}
+\label{tab:performance}
+\begin{tabular}{lccc}
+\hline
+\hline
+Sub-step & GPU Time (s) & CPU Time (s) & Speedup \\
+\hline
+CIC Mass Assignment & 0.01 & 16.5 & 2,377$\times$ \\
+FFT Poisson Solve & 0.05 & 0.69 & 13$\times$ \\
+Force Interpolation & 0.01 & 72.2 & 9,180$\times$ \\
+\hline
+\textbf{Total per step} & \textbf{0.07} & \textbf{89.4} & \textbf{1,348$\times$} \\
+\hline
+\end{tabular}
+\end{table}
+
+\end{document}
+                

@@ -1,0 +1,51 @@
+\documentclass[]{article}
+
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{natbib}
+\usepackage{graphicx} 
+
+
+\begin{document}
+
+\subsection{Simulation setup and initial conditions}
+
+We perform a cosmological N-body simulation in a periodic cubic volume of side length $L_{\text{box}} = 1000 \, \text{Mpc}/h$, containing $N_p = 512^3$ dark matter particles. The simulation evolves the particle distribution from an initial redshift of $z=127$ down to $z=0$. The cosmological parameters are consistent with a flat $\Lambda$CDM model.
+
+The initial conditions are generated at $z=127$ using the first-order Zel'dovich Approximation (ZA). We first compute the linear matter power spectrum, $P_{\text{lin}}(k)$, at this redshift using the CAMB code. This power spectrum is used to generate a Gaussian random density field in Fourier space, which is then transformed to real space to obtain the gravitational displacement potential, $\psi$. Particle positions $\vec{x}$ and peculiar velocities $\vec{v}$ are then set according to the ZA prescription:
+\begin{align}
+\vec{x}(t) &= \vec{q} - D(t) \nabla_q \psi(\vec{q}) \\
+\vec{v}(t) &= -a(t) H(t) f(t) D(t) \nabla_q \psi(\vec{q})
+\end{align}
+where $\vec{q}$ is the initial Lagrangian (grid) position of the particle, $D(t)$ is the linear growth factor, $a(t)$ is the scale factor, $H(t)$ is the Hubble parameter, and $f(t) = d \ln D / d \ln a$ is the logarithmic growth rate. Crucially, the growth rate $f(t)$ is evaluated at the initial redshift $z=127$, where in a matter-dominated universe, $f \approx 1$.
+
+\subsection{GPU-accelerated N-body solver}
+
+The gravitational evolution is computed using a Particle-Mesh (PM) algorithm implemented on a Graphics Processing Unit (GPU) with the NVIDIA Warp framework. The PM method proceeds in discrete time steps using a grid of $N_g = 512^3$ cells, matching the particle number. At each step, the following operations are performed:
+\begin{enumerate}
+    \item \textbf{Mass Assignment:} The mass of the $N_p$ particles is assigned to the grid using a Cloud-in-Cell (CIC) interpolation scheme to produce a dimensionless density contrast field, $\delta(\vec{x})$.
+    \item \textbf{Potential Solver:} The gravitational potential $\phi$ is calculated by solving the Poisson equation, $\nabla^2 \phi = 4 \pi G \bar{\rho} a^2 \delta$, in Fourier space. This involves performing a forward Fast Fourier Transform (FFT) on the density field, solving for $\tilde{\phi}(\vec{k})$ algebraically, and then performing an inverse FFT to obtain $\phi(\vec{x})$.
+    \item \textbf{Force Calculation:} The gravitational force on the grid is computed by taking the numerical gradient of the potential, $\vec{F} = -\nabla \phi$.
+    \item \textbf{Force Interpolation:} The force is interpolated from the grid back to each particle's position using the same CIC scheme.
+\end{enumerate}
+
+The particles' positions and velocities are updated using a standard leapfrog integrator (kick-drift-kick). The equations of motion are formulated in comoving coordinates $\vec{x}$ and peculiar velocities $\vec{v}$. A critical component of the integrator is the inclusion of the Hubble drag term, which accounts for the expansion of the Universe. The velocity update, or ``kick'', for a time step $\Delta t$ is given by:
+\begin{equation}
+\Delta \vec{v} = \vec{F}_{\text{pec}} \Delta t - \vec{v} \frac{\Delta a}{a}
+\end{equation}
+where $\vec{F}_{\text{pec}}$ is the peculiar acceleration derived from the gravitational potential and the second term represents the Hubble drag. The position update, or ``drift'', is given by:
+\begin{equation}
+\Delta \vec{x} = \frac{\vec{v}}{a^2} \Delta t
+\end{equation}
+The simulation proceeds with a fixed number of 80 time steps between $z=127$ and $z=0$.
+
+\subsection{Analysis and validation metrics}
+
+We evaluate our simulation on two primary fronts: computational performance and physical accuracy.
+
+The performance is benchmarked by comparing the wall-clock time of our GPU implementation against an equivalent multi-threaded CPU code that utilizes the \texttt{scipy} library for its FFT and interpolation routines. We measure the execution time for a single time step, breaking it down into the core components of the PM algorithm: CIC mass assignment, the FFT-based Poisson solve, and force interpolation.
+
+The physical accuracy of the simulation is validated by computing the matter power spectrum, $P(k)$, from the final particle snapshot at $z=0$. The power spectrum is estimated by first assigning the particles to the $512^3$ grid to obtain the density field $\delta(\vec{x})$. We then compute its Fourier transform, $\delta(\vec{k})$, and calculate the power by averaging the squared amplitudes, $|\delta(\vec{k})|^2$, in spherical shells of constant wavenumber $k$. The resulting raw power spectrum is corrected by deconvolving the CIC window function and subtracting the shot noise contribution, which is equal to $1/\bar{n}$, where $\bar{n}$ is the mean particle number density. The final simulated power spectrum, $P_{\text{sim}}(k)$, is compared against the non-linear theoretical prediction from CAMB using the HaloFit model. The primary validation metric is the ratio $P_{\text{sim}}(k) / P_{\text{CAMB}}(k)$ over the range of scales relevant for large-scale structure, $k < 0.3 \, h/\text{Mpc}$.
+
+\end{document}
+                

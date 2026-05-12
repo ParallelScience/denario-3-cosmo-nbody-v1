@@ -1,0 +1,181 @@
+---- STDOUT ----
+This is XeTeX, Version 3.141592653-2.6-0.999994 (TeX Live 2022/Debian) (preloaded format=xelatex)
+ restricted \write18 enabled.
+entering extended mode
+(./Results.tex
+LaTeX2e <2022-11-01> patch level 1
+L3 programming layer <2023-01-16>
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2022/07/02 v1.4n Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/multirow/multirow.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/natbib/natbib.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-def/xetex.def)))
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-xetex.def)
+No file Results.aux.
+(/usr/share/texlive/texmf-dist/tex/latex/base/ts1cmr.fd)
+
+LaTeX Warning: Reference `tab:performance' on page 1 undefined on input line 13
+.
+
+
+LaTeX Warning: Reference `fig:image2' on page 1 undefined on input line 39.
+
+
+LaTeX Warning: Reference `fig:image1' on page 1 undefined on input line 48.
+
+! Undefined control sequence.
+l.48 ...to within 3\% on large scales ($k \lesssim
+                                                   0.07 \, h/\text{Mpc}$). O...
+
+? [1]
+
+LaTeX Warning: Reference `fig:image1' on page 2 undefined on input line 59.
+
+
+LaTeX Warning: Reference `fig:image0' on page 2 undefined on input line 59.
+
+[2]
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+[3] [4] (./Results.aux)
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ )
+Output written on Results.pdf (4 pages).
+Transcript written on Results.log.
+---- STDERR ----
+---- STDOUT ----
+This is XeTeX, Version 3.141592653-2.6-0.999994 (TeX Live 2022/Debian) (preloaded format=xelatex)
+ restricted \write18 enabled.
+entering extended mode
+(./Results_refined.tex
+LaTeX2e <2022-11-01> patch level 1
+L3 programming layer <2023-01-16>
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2022/07/02 v1.4n Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/multirow/multirow.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/natbib/natbib.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-def/xetex.def)))
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-xetex.def)
+No file Results_refined.aux.
+(/usr/share/texlive/texmf-dist/tex/latex/base/ts1cmr.fd)
+
+LaTeX Warning: Reference `fig:image2' on page 1 undefined on input line 13.
+
+
+LaTeX Warning: Reference `fig:image1' on page 1 undefined on input line 22.
+
+! Undefined control sequence.
+l.22 ...to within 3\% on large scales ($k \lesssim
+                                                   0.07 \, h/\text{Mpc}$). O...
+
+? [1]
+
+LaTeX Warning: Reference `fig:image0' on page 2 undefined on input line 42.
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+
+LaTeX Warning: Reference `tab:performance' on page 2 undefined on input line 53
+.
+
+[2] [3] [4] (./Results_refined.aux)
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ )
+Output written on Results_refined.pdf (4 pages).
+Transcript written on Results_refined.log.
+---- STDERR ----
+---- STDOUT ----
+This is XeTeX, Version 3.141592653-2.6-0.999994 (TeX Live 2022/Debian) (preloaded format=xelatex)
+ restricted \write18 enabled.
+entering extended mode
+(./Results_refined_v1.tex
+LaTeX2e <2022-11-01> patch level 1
+L3 programming layer <2023-01-16>
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2022/07/02 v1.4n Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/multirow/multirow.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/natbib/natbib.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-def/xetex.def)))
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-xetex.def)
+No file Results_refined_v1.aux.
+(/usr/share/texlive/texmf-dist/tex/latex/base/ts1cmr.fd)
+
+LaTeX Warning: Reference `fig:image2' on page 1 undefined on input line 13.
+
+
+LaTeX Warning: Reference `fig:image1' on page 1 undefined on input line 22.
+
+! Undefined control sequence.
+l.22 ...to within 3\% on large scales ($k \lesssim
+                                                   0.07 \, h/\text{Mpc}$). O...
+
+? [1]
+
+LaTeX Warning: Reference `fig:image0' on page 2 undefined on input line 42.
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+
+LaTeX Warning: Reference `tab:performance' on page 2 undefined on input line 53
+.
+
+[2] [3] [4] (./Results_refined_v1.aux)
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ )
+Output written on Results_refined_v1.pdf (4 pages).
+Transcript written on Results_refined_v1.log.
+---- STDERR ----

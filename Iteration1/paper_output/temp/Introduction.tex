@@ -1,0 +1,20 @@
+\documentclass[]{article}
+
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{natbib}
+\usepackage{graphicx} 
+
+
+\begin{document}
+
+The Lambda Cold Dark Matter model provides the standard framework for understanding the formation of large-scale structure in the Universe. Within this model, cosmological N-body simulations are an indispensable tool, evolving the distribution of matter under gravity from nearly homogeneous initial conditions to the intricate cosmic web observed today. These simulations are the primary method for generating theoretical predictions in the non-linear regime of structure formation, which is essential for interpreting data from modern galaxy surveys. As these surveys map the cosmos with increasing precision, they demand not single simulations, but large ensembles of thousands of realizations to accurately estimate covariance matrices, train cosmological emulators, and robustly test for systematic effects. The immense computational expense of traditional high-resolution simulations, however, presents a significant bottleneck, limiting the statistical power of cosmological analyses.
+
+To overcome this computational barrier, we explore the use of Graphics Processing Units (GPUs), whose massively parallel architecture is exceptionally well-suited to the algorithms used in N-body simulations. We focus on the Particle-Mesh (PM) method, a computationally efficient approach where the gravitational potential is calculated by solving the Poisson equation, $\nabla^2 \phi = 4 \pi G (\rho - \bar{\rho})$, on a regular grid using Fast Fourier Transforms. While the force resolution of the PM method is limited by the grid spacing, it offers an excellent balance of speed and accuracy on the large scales relevant to many cosmological studies. This makes it an ideal candidate for rapidly generating the large-volume simulations required for statistical applications where the detailed structure of individual dark matter halos is not the primary focus.
+
+In this paper, we present a new, high-performance cosmological PM N-body code implemented entirely on GPUs using the NVIDIA Warp framework. Warp is a modern, Python-based library that enables the development of high-performance compute kernels with significantly reduced programming complexity compared to traditional GPU programming languages. Our implementation is designed to evolve millions of particles from high redshift to the present day, incorporating essential physical effects such as the expansion of the Universe through a Hubble drag term in the equations of motion. We begin by generating initial particle positions and velocities at redshift $z=127$ using the Zel'dovich Approximation.
+
+The primary goals of this work are twofold: to demonstrate the substantial performance gains achievable with this modern GPU framework and to rigorously validate the physical accuracy of our simulation. We benchmark the code's runtime against an equivalent multi-threaded CPU implementation, quantifying the speedup. More importantly, we validate the simulation output by comparing the final matter power spectrum, $P(k)$, at redshift $z=0$ against established non-linear theoretical predictions. We show that our code reproduces the power spectrum to within 3--10\% for wavenumbers $k < 0.3 \, h/\text{Mpc}$, with remaining deviations attributable to the known limitations of first-order initial conditions and the intrinsic resolution of the PM method. This work establishes our GPU-accelerated code as a validated and powerful tool for the rapid generation of cosmological simulations, enabling new avenues for statistical cosmological inquiry.
+
+\end{document}
+                

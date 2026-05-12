@@ -1,0 +1,151 @@
+
+###### PROMPT BEGINS ########
+System: You are a scientist
+Human: You are provided with:
+- a report on the results of a project. 
+- a plot from the analysis of the project.
+Your task is to create a caption for the plot that will be placed in the results section of a scientific paper. 
+
+Follow these instructions:
+- Write the caption in LaTeX
+- Describe what the plot is showing and relate it to the context below
+- Use the context below to relate the content of the caption to the results section
+- Do not refer to any section or subsection in the text
+- Try to describe what we learn from the image
+- Write the caption to be as short as possible while keeping its content
+- Do not make up anything. The caption should be a description of the plot based on the context below.
+- The caption must be a single paragraph.
+- When writing the caption, take into account that the underscore symbol needs to be written as \_, otherwise it wont compile in LaTeX.
+- Caption must not include tables.
+- If using percentage symbols, use \% instead of %
+
+Context:
+# Results: GPU-Accelerated PM Simulation — Iteration 1 (Corrected Dynamics)
+
+## Summary
+
+Iteration 1 identified and fixed two critical bugs in the leapfrog integrator from Iteration 0, achieving physically correct cosmological N-body dynamics:
+
+1. **Missing Hubble drag**: The kick step was `Δv = F·dt` instead of the correct `Δv = F·dt - v·(da/a)`. Without Hubble drag, peculiar velocities accumulate too fast (force-only growth rate 3× the correct net rate in EdS), causing ~5× overclustering.
+
+2. **Wrong initial growth rate**: ICs used `f_growth = Ω_m^0.55 = 0.532` (the z=0 value) instead of f≈1.0 (correct for matter-dominated z=127). This underpredicted initial velocities by 1.88×.
+
+After fixing both bugs: final displacement RMS = **5.648 Mpc/h** (expected 5.7, **99% accuracy**), and P(k) agrees with CAMB HaloFit within 5–15% at k < 0.3 h/Mpc.
+
+---
+
+## 1. Bug Diagnosis and Fixes
+
+### Bug 1: Hubble Drag Missing from Leapfrog Kick
+
+The correct equation of motion for peculiar velocity v_pec = a · dx_com/dt in the expanding universe is:
+
+    d(a v_com) / dt = F_com  →  Δ(av) = F_com · Δt
+
+Equivalently for the peculiar velocity:
+
+    Δv = F · dt - v · (da/a)
+
+The term `-v · (da/a)` is the Hubble drag. Without it, velocity grows at rate 3/(2) × (3/2) H₀² Ψ/a vs the correct net (1/2) × ..., leading to velocities that grow 3× too fast and displacements 5-6× too large.
+
+**Evidence**: Without drag, final displacement = 30.8 Mpc/h (5.4× excess). With drag: 4.6 Mpc/h.
+
+### Bug 2: Wrong Growth Rate at z=127
+
+The ZA velocity: v_pec = a · H(a) · f · ψ, where f = d ln D / d ln a.
+
+At z=127 (matter-dominated): Ω_m(z=127) ≈ 1 → f ≈ 1.0.  
+The Iter 0 code used f = Ω_m(z=0)^0.55 = 0.317^0.55 = 0.532 (the z=0 value).
+
+This underpredicts the initial velocity by 0.532/1.0 = 0.532, introducing a transient decaying mode. After fixing f=1.0: σ_vel = 37.2 km/s (vs 19.8 with f=0.532).
+
+**Combined effect**: Both fixes together give σ_psi(z=0) = 5.648 Mpc/h ≈ expected 5.7 Mpc/h. ✓
+
+---
+
+## 2. GPU Speedup (N=512³, validated from Iteration 0)
+
+| Sub-step | GPU (Warp+cuFFT) | CPU (scipy, all cores) | Speedup |
+|---|---|---|---|
+| CIC deposit | 0.01 s | 16.5 s | **2,377×** |
+| FFT Poisson | 0.05 s | 0.69 s | **13×** |
+| Force interpolation | 0.01 s | 72.2 s | **9,180×** |
+| **Total per step** | **0.07 s** | **89.4 s** | **1,348×** |
+
+Full 80-step simulation at N=512³ = 134M particles: **10.5 seconds** on GPU vs ~2 hours on CPU.
+
+---
+
+## 3. Corrected Simulation Results
+
+### Initial Conditions
+- P(k=0.1, z=127) = 0.60 (Mpc/h)³ ← correct ZA from CAMB
+- Displacement σ_ψ = 0.058 Mpc/h, velocity σ_v = 37.2 km/s (with f=1.0)
+
+### Final Displacement at z=0
+- **σ_ψ(z=0) = 5.648 Mpc/h** (expected from linear ZA: 5.7 Mpc/h, accuracy 99.1%)
+
+### Matter Power Spectrum P(k) at z=0
+
+Comparison with CAMB HaloFit nonlinear P(k):
+
+| k (h/Mpc) | P_sim (Mpc/h)³ | P_CAMB_NL | Ratio |
+|---|---|---|---|
+| 0.019 | 25,697 | 24,893 | 1.032 |
+| 0.027 | 20,898 | 21,691 | 0.963 |
+| 0.067 | 9,915 | 10,124 | 0.979 |
+| 0.104 | 5,215 | 5,524 | 0.944 |
+| 0.163 | 2,872 | 3,105 | 0.925 |
+| 0.254 | 1,555 | 1,729 | 0.899 |
+
+At k = 0.05–0.3 h/Mpc: **P_sim/P_CAMB_NL = 0.90–0.97** — within 3–10% of the nonlinear prediction.
+
+The systematic ~10% underprediction arises from:
+- **ZA vs 2LPT ICs**: Quijote uses 2LPT which provides ~5–15% more power at k > 0.1 h/Mpc compared to ZA (Crocce et al. 2006)
+- **Single realization**: No ensemble averaging; cosmic variance contributes at low k
+- **IC amplitude**: σ_ψ = 0.058 Mpc/h vs theoretical 0.061 (95% of target at N=512)
+
+At k > 0.3 h/Mpc: power falls below CAMB due to the PM force resolution limit (cell size = 1.95 Mpc/h).
+
+### 5% Agreement Target
+
+The 5% agreement target (|P_sim/P_CAMB - 1| < 0.05) is **met at k ≈ 0.019–0.03 h/Mpc** (ratio = 1.03–0.96). At k = 0.07 and 0.067 h/Mpc, the ratio is 0.979 — within 2.1% of unity. The overall agreement within 10% for k < 0.3 h/Mpc represents a significant improvement from the ~1000% excess of the uncorrected code.
+
+To achieve <5% at k < 0.3 h/Mpc: upgrade from ZA to 2LPT initial conditions (directly addresses the systematic bias).
+
+---
+
+## 4. Key Technical Findings
+
+1. **Hubble drag is essential**: Omitting `-v·(da/a)` from the leapfrog kick causes 5× overclustering — a subtle but critical cosmological correction
+2. **Growth rate at IC redshift**: f must be evaluated at z_init (≈1 for matter-dominated), not z=0
+3. **GPU speedup**: 1,348× over multi-threaded CPU at N=512³ — enables ensemble generation at ~70 GPU-hours per 1000 simulations
+4. **PM accuracy**: ZA-initialized Warp PM achieves 90–97% of the nonlinear P(k) for k < 0.3 h/Mpc in a single 10.5-second GPU run
+
+---
+
+## 5. Comparison with Quijote Reference
+
+| Quantity | This work | Quijote |
+|---|---|---|
+| N_particles | 512³ | 512³ |
+| Box size | 1000 Mpc/h | 1000 Mpc/h |
+| IC method | ZA (1st order) | 2LPT (2nd order) |
+| Code | NVIDIA Warp (GPU) | GADGET-3 (CPU TreePM) |
+| P(k=0.1, z=0) accuracy | ~90–97% of HaloFit | <1% of N-body |
+| Time per simulation | 10.5s (GPU) | ~hours (CPU) |
+| Speedup over CPU PM | 1,348× | baseline |
+
+            
+**Respond in exactly this format**
+
+\\begin{Caption}
+<Caption>
+\\end{Caption}
+
+In <Caption> place the figure caption.
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-2.5-pro] ########
+content="```latex\n\\begin{Caption}\nValidation of the corrected N-body simulation dynamics at z=0, comparing the matter power spectrum from the simulation (P\\_sim) against the CAMB HaloFit nonlinear prediction (P\\_CAMB\\_NL). After fixing critical bugs in the leapfrog integrator related to Hubble drag and the initial growth rate, the simulation achieves agreement within 3–10\\% for wavenumbers k < 0.3 h/Mpc. This result confirms the physical accuracy of the simulation, with the slight systematic power deficit at k > 0.1 h/Mpc being consistent with the use of Zel'dovich Approximation initial conditions.\n\\end{Caption}\n```" additional_kwargs={} response_metadata={'finish_reason': 'STOP', 'model_name': 'gemini-2.5-pro', 'safety_ratings': [], 'model_provider': 'google_genai'} id='lc_run--019e1c16-c8ed-7c11-8db5-26969d34b2a7-0' tool_calls=[] invalid_tool_calls=[] usage_metadata={'input_tokens': 2584, 'output_tokens': 1765, 'total_tokens': 4349, 'input_token_details': {'cache_read': 0}, 'output_token_details': {'reasoning': 1620}}
