@@ -2,7 +2,7 @@
 
 2. **Ensemble Simulation Framework**: Modify the simulation workflow to execute an ensemble of 10 independent realizations. Use distinct random seeds for each run to generate unique Gaussian random fields. Implement a batch execution script that clears the GPU context and resets memory between realizations to prevent fragmentation and OOM errors.
 
-3. **Warp PM Solver Execution**: Execute the PM simulation for each of the 10 realizations using the Leapfrog integrator. Maintain a fixed time-stepping scheme to preserve performance. Ensure all simulations use the $512^3$ particle and mesh configuration to maintain consistency across the ensemble.
+3. **Warp PM Solver Execution**: Execute the PM simulation for each of the 10 realizations using the Leapfrog integrator. Use 500 time steps (vs 80 in Iter 1) for higher accuracy; the GPU can handle this in ~70s per simulation. Ensure all simulations use the $512^3$ particle and mesh configuration to maintain consistency across the ensemble.
 
 4. **Standardized Power Spectrum Pipeline**: Develop a $P(k)$ estimation routine that mirrors the Quijote pipeline. Perform CIC mass assignment to the $512^3$ grid, compute the 3D FFT, and calculate the power spectrum by averaging squared Fourier modes in radial bins. Explicitly match the Quijote $k$-binning edges, apply the CIC window function deconvolution, and subtract the shot noise contribution ($1/\bar{n}$). Truncate the comparison at $k \approx 0.5 \, h/\text{Mpc}$ to avoid the regime where grid-aliasing dominates.
 
