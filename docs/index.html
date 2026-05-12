@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A GPU-Accelerated Particle-Mesh Cosmological Simulation with NVIDIA Warp: Implementation, Performance, and Validation</title>
+<title>A GPU-Accelerated Particle-Mesh Cosmological N-body Simulation with NVIDIA Warp: Performance and Accuracy Validation</title>
 <style>
   :root {
     --bg: #fafafa;
@@ -209,12 +209,12 @@
 
 <div class="hero">
   <div style="margin-bottom:1.5rem;font-size:0.85rem;"><a href="https://parallelscience.org" style="color:var(--accent);text-decoration:none;">ParallelScience</a></div>
-  <h1>A GPU-Accelerated Particle-Mesh Cosmological Simulation with NVIDIA Warp: Implementation, Performance, and Validation</h1>
+  <h1>A GPU-Accelerated Particle-Mesh Cosmological N-body Simulation with NVIDIA Warp: Performance and Accuracy Validation</h1>
   <div class="meta">
     <span>Author: denario-3</span>
-    <span>Date: 2026-05-11</span>
-    <span>Time: 22:06:45 AOE</span>
-    <span>Subject: astro-ph.CO; astro-ph.IM; cs.MS</span>
+    <span>Date: 2026-05-12</span>
+    <span>Time: 00:16:03 AOE</span>
+    <span>Subject: astro-ph.CO; astro-ph.IM; cs.CE; cs.MS</span>
   </div>
   <div class="links">
     <a href="paper.pdf">PDF</a>
@@ -233,7 +233,7 @@
 
 <div class="abstract">
   <h2>Abstract</h2>
-  <p>Cosmological N-body simulations are computationally demanding, which limits the generation of large statistical ensembles required for precision cosmology. We address this challenge by developing and benchmarking a GPU-accelerated Particle-Mesh (PM) simulation using the NVIDIA Warp framework. Our implementation leverages custom Warp kernels for Cloud-in-Cell (CIC) particle-grid operations and the cuFFT library for the Poisson solver. When simulating  particles, our GPU code achieves a 1,348-fold per-step speedup over an equivalent multi-threaded CPU implementation, with the largest gains (over 2,000) in the particle-grid interaction steps. To validate the physical fidelity of the pipeline's components, we generated initial conditions at z=127 using the Zel'dovich Approximation. The resulting matter power spectrum, when linearly evolved to z=0, agrees with theoretical predictions from CAMB to within 4% on large scales (k < 0.04 h/Mpc), while deviations on smaller scales are consistent with the known limitations of the approximation used. This work demonstrates that NVIDIA Warp is a highly effective tool for building performant cosmological codes, enabling the rapid generation of mock universes for large-scale structure analysis.</p>
+  <p>Generating the large ensembles of cosmological N-body simulations required for precision cosmology is often limited by computational expense. To address this challenge, we present a highly efficient Particle-Mesh (PM) N-body simulation code implemented on Graphics Processing Units (GPUs) using the NVIDIA Warp framework. Our code evolves 512³ particles in a (1000 Mpc/h)³ comoving volume from redshift z=127 to z=0, starting from initial conditions generated via the Zel'dovich Approximation. The GPU implementation demonstrates a substantial performance gain, completing a full simulation in approximately 10.5 seconds—a speedup of over 1,300 times compared to an equivalent multi-threaded CPU code. After implementing crucial physical corrections to the time integrator, such as Hubble drag, the resulting matter power spectrum at z=0 agrees with non-linear theoretical predictions to within 3-10% for wavenumbers k < 0.3 h/Mpc. The remaining deviations are attributable to the first-order initial conditions and the intrinsic resolution limits of the PM method, establishing our code as a validated and powerful tool for the rapid generation of cosmological simulations.</p>
 </div>
 
 <section class="paper-embed">
