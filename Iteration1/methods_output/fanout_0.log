@@ -1,0 +1,188 @@
+
+###### PROMPT BEGINS ########
+Human: You are provided with:
+- a description of the data
+- an idea
+- research plan to carry out the idea.
+
+Your task is to provide suggestions on how to improve the plan.
+Take into account and potential feedback (if any).
+If the plan is already good enough, do not give suggestions to improve it. If this is not first iteration, you will also be provided with the previous research plan along with some feedback on it. If this is the case, take into account the feedback provided when designing the new research plan. It is good to have a detailed plan, but not to have an overly complicated plan. If you dont have suggestions, just say that you dont have further suggestions. The idea should remain the same. No need to add code to the research plan, as another agent will write code given the research plan.
+
+Data description:
+# GPU-Accelerated Cosmological N-body Simulation with NVIDIA Warp
+
+## Overview
+
+This project implements a cosmological N-body (PM — Particle-Mesh) simulation using NVIDIA Warp on GPU, then validates it against reference Quijote power spectra. The goal is to quantify both the physical accuracy (P(k) comparison) and the computational speedup vs. equivalent CPU code.
+
+## Simulation Parameters (matching Quijote fiducial)
+
+| Parameter | Value |
+|---|---|
+| Box size | 1000 Mpc/h |
+| N_particles | 512³ = 134,217,728 |
+| Mesh resolution | 512³ (or 1024³) |
+| Cosmology | Planck 2018 fiducial |
+| Ωm | 0.3175 |
+| Ωb | 0.049 |
+| h | 0.6711 |
+| ns | 0.9624 |
+| σ8 | 0.834 |
+| Starting redshift | z_init = 127 |
+| Output redshifts | z = 0, 0.5, 1, 2 |
+| Random seed | 0 (fixed, reproducible) |
+
+## Initial Conditions
+
+ICs are generated on-the-fly using the Zel'dovich Approximation (ZA) / first-order Lagrangian Perturbation Theory:
+1. Compute linear matter power spectrum P(k, z_init) using `camb` with the Quijote fiducial cosmology
+2. Generate a Gaussian random field in Fourier space using P(k) and a fixed random seed
+3. Displace particles from a regular grid using the ZA displacement field
+4. Assign velocities using the ZA velocity field (∇φ / (aH f))
+
+Note: Quijote uses 2LPT (2nd-order LPT) for ICs. Our ZA ICs introduce small differences at high-k that are expected and will be characterized.
+
+## Simulation Code: NVIDIA Warp (GPU)
+
+- **Framework**: NVIDIA Warp 1.13.0 (`warp-lang`)
+- **Device**: NVIDIA RTX PRO 6000 Blackwell (95 GiB VRAM, sm_120, CUDA 13.0)
+- **Method**: Particle-Mesh (PM) — O(N log N) complexity
+  - CIC (Cloud-in-Cell) mass assignment to 512³ mesh
+  - FFT-based Poisson solver: ∇²φ = -4πGρ → φ(k) = -4πGρ(k)/k²
+  - Gradient of potential → forces on particles
+  - Leapfrog integration (kick-drift-kick scheme)
+- **Time stepping**: ~50-100 steps from z=127 to z=0, step size controlled by Courant condition
+
+## Reference Data: Quijote Power Spectra
+
+The Quijote fiducial P(k) at z=0 is publicly available at:
+`https://raw.githubusercontent.com/franciscovillaescusa/Quijote-simulations/master/summary_statistics/Pk/Pk_m_z=0_0.txt`
+
+This provides the non-linear matter power spectrum P(k) averaged over multiple Quijote realizations. The comparison metric is:
+- Ratio P_warp(k) / P_quijote(k) across k range 0.01–1 h/Mpc
+- Target: agreement within 5% for k < 0.3 h/Mpc
+
+## Speedup Benchmark
+
+Compare wall-clock time for:
+- Full PM simulation (512³): Warp GPU vs. equivalent numpy/scipy CPU implementation
+- Per-step breakdown: mass assignment, FFT, force interpolation, integration
+- Memory usage: GPU vs. CPU
+
+## File Paths
+
+All generated files are saved to the project data directory:
+- `/home/node/work/projects/cosmo_nbody_v1/data/` — IC files, snapshot outputs, P(k) outputs
+- No pre-existing input files; everything is generated in-code
+
+## Software Dependencies (all available in /opt/denario-venv)
+
+- `warp-lang==1.13.0` — GPU-accelerated kernels
+- `camb==1.6.6` — linear matter power spectrum
+- `numpy`, `scipy` — FFT, array operations
+- `matplotlib` — plotting
+
+
+Idea:
+**Title: GPU-Accelerated Cosmological N-body Simulation with NVIDIA Warp: Accuracy and Speedup vs. Quijote**
+
+This project implements a cosmological Particle-Mesh (PM) N-body simulation using NVIDIA Warp on GPU, benchmarks its performance against an equivalent CPU implementation, and validates its physical accuracy against the Quijote reference power spectra.
+
+**Research Questions:**
+1. How accurately does the Warp PM simulation reproduce the matter power spectrum P(k) of the Quijote fiducial cosmology?
+2. What is the GPU speedup over an equivalent CPU (numpy/scipy) PM implementation?
+
+**Approach:**
+
+*Initial Conditions*: Generate ICs at z=127 using the Zel'dovich Approximation (ZA) with the Quijote fiducial cosmology (Ωm=0.3175, h=0.6711, ns=0.9624, σ8=0.834, box=1000 Mpc/h). The linear P(k) is computed with `camb`. Note: Quijote uses 2LPT; the ZA difference will be characterized but is not the focus.
+
+*GPU Simulation*: Implement PM gravity in NVIDIA Warp (1.13.0) on RTX PRO 6000 (95 GiB VRAM):
+- Cloud-in-Cell (CIC) mass assignment to 512³ mesh
+- FFT-based Poisson solver
+- Leapfrog (kick-drift-kick) integration from z=127 to z=0
+- ~50 time steps with adaptive step size
+
+*CPU Baseline*: Equivalent numpy/scipy PM implementation for timing comparison.
+
+*Validation*: Compare the final P(k) at z=0 against the publicly available Quijote fiducial power spectrum. Target: P_warp(k)/P_quijote(k) within 5% for k < 0.3 h/Mpc.
+
+*Deliverables*:
+1. Wall-clock time: GPU vs CPU (per step and total)
+2. P(k) ratio plot: Warp vs Quijote reference
+3. Qualitative assessment of where PM + ZA deviates from the full Quijote result and why
+
+
+Research plan:
+1. **2LPT Initial Conditions Implementation**: Replace the Zel'dovich Approximation (ZA) with 2nd-order Lagrangian Perturbation Theory (2LPT) for IC generation. Compute the second-order displacement field by solving the Poisson equation for the second-order potential $\phi^{(2)}$ using the same `camb` linear power spectrum. Ensure the particle positions and velocities at $z=127$ are calculated using the full 2LPT expansion to minimize transient errors in the early stages of the simulation.
+
+2. **Unit Consistency and Integrator Verification**: Explicitly define the physical-to-comoving coordinate transformations. Document the conversion factors for the Leapfrog `kick` and `drift` operators, ensuring the acceleration $\vec{a} = -\nabla \phi / a^2$ and the velocity update $\Delta \vec{v} = \vec{a} \Delta t$ correctly account for the Hubble expansion $H(z)$ and the growth factor $f(z)$. Verify these factors by running a single-step test and checking that the particle displacement matches the expected analytical growth for a small time interval.
+
+3. **PM Solver Verification (CPU-GPU Cross-Check)**: Validate the Warp PM gravity solver by comparing its output against a reference CPU-based PM implementation. Use identical ICs and the same time-stepping sequence. Calculate the force field $\vec{F}$ at a specific snapshot and compute the relative error $\epsilon = |\vec{F}_{warp} - \vec{F}_{cpu}| / |\vec{F}_{cpu}|$. Ensure the solver is bit-wise consistent or within machine precision limits before proceeding to full-scale dynamical runs.
+
+4. **Scaling and Performance Benchmarking**: Conduct a performance scaling study by running the PM simulation at $512^3$, $1024^3$, and $2048^3$ grid resolutions. Measure the wall-clock time for each component (CIC, FFT, Force Interpolation, Integration). Utilize the GPU's 95 GiB VRAM to saturate the `cuFFT` kernels and identify the resolution threshold where the GPU-accelerated FFTs provide a significant performance advantage over the CPU-based FFTW.
+
+5. **Simulation Execution**: Run the validated Warp PM simulation from $z=127$ to $z=0$ using the $512^3$ particle and mesh configuration. Maintain a consistent time-stepping scheme based on the Courant condition, ensuring the time-step $\Delta t$ is small enough to resolve the fastest particle motion within a single grid cell. Save snapshots at $z=0, 0.5, 1,$ and $2$.
+
+6. **Power Spectrum Estimation**: Compute the matter power spectrum $P(k)$ for the $z=0$ snapshot. Perform CIC mass assignment to generate the density field, compute the density contrast $\delta$, and apply a 3D FFT. Calculate the power spectrum by averaging the squared Fourier modes in radial bins, applying the CIC window function deconvolution, and subtracting the shot noise contribution ($1/\bar{n}$).
+
+7. **Validation against Quijote**: Compare the $P(k)$ results from the 2LPT-initialized Warp simulation against the Quijote fiducial reference. Calculate the ratio $P_{warp}(k) / P_{quijote}(k)$ for $0.01 \leq k \leq 1 \, h/\text{Mpc}$. Assess whether the 2LPT implementation successfully brings the agreement within the 5% target for $k < 0.3 \, h/\text{Mpc}$.
+
+8. **Final Analysis of Residuals**: Document the remaining discrepancies between the Warp PM simulation and the Quijote reference. Attribute these differences to the inherent limitations of the PM method (e.g., force softening, grid resolution, and the lack of higher-order N-body dynamics) rather than IC generation errors. Summarize the performance gains and the physical validity of the Warp-based PM approach.
+
+Previous research plan:
+1. **Initial Conditions Generation**: Compute the linear matter power spectrum at $z=127$ using `camb` with the Quijote fiducial cosmology. Generate a Gaussian random field in Fourier space using a fixed random seed. Displace particles from a regular $512^3$ grid and assign velocities using the Zel'dovich Approximation (ZA). Save the initial particle state to the project data directory.
+
+2. **Warp PM Kernel Implementation**: Develop the Particle-Mesh (PM) gravity solver in NVIDIA Warp.
+    - Implement a CIC mass assignment kernel, ensuring proper normalization by cell volume.
+    - Implement the Poisson solver in Fourier space, ensuring the density field is converted to density contrast $\delta = (\rho - \bar{\rho}) / \bar{\rho}$ and that the $k=0$ mode is handled correctly.
+    - Develop a force interpolation kernel with a grid-based softening treatment to prevent numerical instabilities.
+    - Implement a Leapfrog (kick-drift-kick) integrator, reusing GPU buffers for the density grid and potential field to minimize memory allocation overhead.
+
+3. **Simulation Execution**: Run the Warp simulation from $z=127$ to $z=0$. Define the time-step size using the Courant condition: $\Delta t = \eta \sqrt{\text{cell\_size} / \text{acceleration}}$, where $\eta$ is a stability constant. Save particle snapshots at $z=0, 0.5, 1,$ and $2$.
+
+4. **CPU Baseline Implementation**: Develop an equivalent PM simulation using `numpy` and `scipy.fft`. Ensure the implementation uses the same CIC, Poisson, and Leapfrog logic. Configure the CPU environment to run on a fixed number of threads (or single-core) to maintain a clear baseline, and verify that system RAM is sufficient to hold the $512^3$ arrays without disk swapping.
+
+5. **Performance Benchmarking**: Measure wall-clock time for both Warp and CPU implementations. Perform a per-step breakdown (mass assignment, FFT, force interpolation, integration). Include a "warm-up" phase (running several dummy steps) for the GPU kernels to ensure compilation and initialization overheads are excluded from the timing results.
+
+6. **Power Spectrum Estimation**: Compute the matter power spectrum $P(k)$ for the $z=0$ snapshot.
+    - Perform CIC density assignment and convert to density contrast $\delta$.
+    - Apply a 3D FFT and calculate the power spectrum by averaging squared Fourier modes in radial bins.
+    - Deconvolve the CIC window function $W(k) = \text{sinc}^2(k_x \Delta/2) \text{sinc}^2(k_y \Delta/2) \text{sinc}^2(k_z \Delta/2)$.
+    - Subtract the shot noise contribution ($1/\bar{n}$) from the final power spectrum.
+
+7. **Validation and Comparison**: Download the reference Quijote fiducial $P(k)$ data. Calculate the ratio $P_{warp}(k) / P_{quijote}(k)$ for $0.01 \leq k \leq 1 \, h/\text{Mpc}$. Generate a plot to assess the 5% agreement target for $k < 0.3 \, h/\text{Mpc}$.
+
+8. **Analysis of Deviations**: Analyze discrepancies between the Warp simulation and the Quijote reference. Characterize the impact of using ZA initial conditions versus 2LPT, evaluate the resolution limits of the $512^3$ PM grid, and document findings regarding high-$k$ mode deviations.
+
+Feedback on previous research plan:
+The current analysis successfully demonstrates the computational viability of using NVIDIA Warp for PM simulations, achieving a 7.5× speedup. However, the scientific validation is currently conflating two distinct issues: the limitations of the Zel'dovich Approximation (ZA) and the performance of the PM gravity solver. To improve the robustness and scientific insight of future iterations, address the following:
+
+1. **Decouple IC Errors from Dynamics**: The reported $P(k)$ comparison at $z=0$ is dominated by the known failure of ZA to capture non-linear growth and shell-crossing. Comparing ZA-evolved particles to a full N-body Quijote reference is scientifically misleading because the discrepancy is primarily an IC/methodological limitation, not a failure of the PM gravity solver. **Action**: Implement a 2LPT IC generator. This is strictly necessary to reach the 5% accuracy target at $k \approx 0.3 \, h/\text{Mpc}$. Without 2LPT, you cannot distinguish between "bad physics" (ZA) and "bad implementation" (PM solver bugs).
+
+2. **Validate the PM Solver, Not the ZA**: To verify the PM gravity solver itself, perform a "frozen" test: compare the force field calculated by your Warp PM kernel against a direct summation (or a high-precision reference) for a single snapshot. Alternatively, compare the Warp PM output at $z=0$ against a CPU-based PM simulation (using the same ICs). If the Warp PM and CPU PM match, your solver is correct, regardless of how poorly they both match the Quijote reference.
+
+3. **Address the Unit Inconsistency**: The report mentions a "coordinate unit inconsistency" between force scales and positions. This is a critical red flag. In cosmological simulations, incorrect scaling of the expansion factor $a$ or the Hubble parameter $H(z)$ in the leapfrog integrator will lead to non-physical growth rates. **Action**: Document the exact conversion factors used in the `kick` and `drift` steps. Ensure the simulation is dimensionless or consistently scaled to $h$ and $Mpc$ before proceeding to full dynamical runs.
+
+4. **Refine Benchmarking**: The 7.5× speedup is promising, but the FFT step shows no gain because the mesh size ($512^3$) is too small to saturate the GPU's throughput. **Action**: Since you have 95 GiB of VRAM, perform a scaling test at $1024^3$ or $2048^3$. This will reveal the true performance crossover point where GPU-accelerated FFTs (cuFFT) significantly outperform CPU-based FFTW.
+
+5. **Shot Noise and Resolution**: You correctly identified that $N=128$ is insufficient for $k > 0.2 \, h/\text{Mpc}$. Do not waste further analysis time on $N=128$ for power spectrum validation. Move directly to $N=512$ for all future validation runs to ensure the shot noise floor is sufficiently low to allow for a meaningful comparison with Quijote.
+
+**Summary for next iteration**: Prioritize 2LPT implementation and unit consistency verification over further $P(k)$ plotting. Once the PM solver is verified against a CPU-PM baseline, the physical accuracy will naturally improve, and the comparison to Quijote will become a valid test of the PM method's resolution limits rather than a test of ZA's failure.
+
+
+Respond in this format:
+
+\\begin{SUGGESTIONS}
+<SUGGESTIONS>
+\\end{SUGGESTIONS}
+
+In <SUGGESTIONS> put the suggestions to improve the plan.
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-3.1-flash-lite-preview] ########
+\begin{SUGGESTIONS}
+The updated research plan is excellent and directly addresses the feedback provided. It correctly prioritizes the decoupling of IC errors (via 2LPT) from solver errors (via CPU-GPU cross-check) and includes the necessary scaling tests to leverage the GPU's hardware capabilities. I have no further suggestions to improve the plan.
+\end{SUGGESTIONS}
+
