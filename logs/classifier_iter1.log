@@ -1,0 +1,7 @@
+Classifier: Step 1 — Determining archive...
+  Archive: astro-ph — The paper focuses on cosmological N-body simulations and the validation of matter power spectra, which are core topics within the astrophysics and cosmology domain.
+Classifier: Step 2 — Determining subcategory within 'astro-ph'...
+  Primary: astro-ph.CO
+  Secondary: astro-ph.IM, cs.CE, cs.MS
+  Justification: The paper focuses on cosmological N-body simulations for large-scale structure (astro-ph.CO) and describes a computational method/software implementation (astro-ph.IM). Given the heavy emphasis on GPU acceleration and high-performance computing, cross-listing with Computational Engineering (cs.CE) and Mathematical Software (cs.MS) is appropriate.
+Classification completed in 0 min 2 sec. Cost: $0.0000

@@ -1,0 +1,9 @@
+{
+  "primary_category": "astro-ph.CO",
+  "secondary_categories": [
+    "astro-ph.IM",
+    "cs.CE",
+    "cs.MS"
+  ],
+  "justification": "The paper focuses on cosmological N-body simulations for large-scale structure (astro-ph.CO) and describes a computational method/software implementation (astro-ph.IM). Given the heavy emphasis on GPU acceleration and high-performance computing, cross-listing with Computational Engineering (cs.CE) and Mathematical Software (cs.MS) is appropriate."
+}
