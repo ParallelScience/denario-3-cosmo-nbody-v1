@@ -1,0 +1,19 @@
+LaTeX Compilation Errors Found:
+
+! Undefined control sequence.
+l.30 ...tantial at the largest scales ($k \lesssim
+0.05 \, \text{h/Mpc}$), w...
+
+? ! Undefined control sequence.
+l.30 ...this regime. At smaller scales ($k \gtrsim
+0.1 \, \text{h/Mpc}$), th...
+
+?
+
+! Emergency stop.
+l.30
+
+No pages of output.
+Transcript written on Results.log.
+---- STDERR ----
+

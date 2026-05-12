@@ -1,0 +1,44 @@
+\documentclass[]{article}
+
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{natbib}
+\usepackage{graphicx} 
+
+
+\begin{document}
+
+The results of our investigation are presented in two parts. First, we quantify the computational performance of our GPU-accelerated simulation. Second, we present a detailed physical validation of the simulation's accuracy by analyzing the ensemble-averaged matter power spectrum.
+
+\subsection{Computational performance}
+A primary objective of this work was to leverage GPU acceleration to drastically reduce the computational time required for cosmological N-body simulations. Our implementation using the NVIDIA Warp framework demonstrates a significant performance improvement over traditional CPU-based methods.
+
+Each simulation, evolving $512^3$ particles from $z=127$ to $z=0$ over 200 time steps, completed in approximately 20 seconds on a single GPU. This represents a substantial reduction from the estimated wall-clock time of several hours for a comparable PM simulation running on a multi-core CPU. The total computational time for the entire ensemble of ten independent realizations was approximately 200 seconds. This dramatic increase in speed enables the rapid generation of large simulation suites, which is critical for modern cosmological analyses that require robust statistical sampling and covariance estimation.
+
+\subsection{Physical validation}
+To assess the physical accuracy of our simulation, we computed the matter power spectrum, $P(k)$, for each of the ten independent realizations at $z=0$. The ensemble-averaged power spectrum provides a statistically robust measurement, mitigating the effects of cosmic variance inherent in any single finite-volume simulation.
+
+Figure \ref{fig:image1} presents the central result of our validation. The left panel compares the ensemble-averaged power spectrum from our Warp PM simulations (red line) against the non-linear theoretical prediction from CAMB HaloFit (black line). The right panel shows the ratio of the simulated power spectrum to the theoretical model, providing a direct measure of the simulation's accuracy as a function of scale. The shaded region indicates the $1\sigma$ standard deviation across the 10-realization ensemble, representing the cosmic variance within our $(1000 \, \text{Mpc}/h)^3$ simulation volume.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../input_files/plots/pk_ensemble.png}
+    \caption{The ensemble-averaged matter power spectrum from 10 Warp PM simulations using 2LPT initial conditions (red line) compared against the CAMB HaloFit theoretical prediction (black line). The left panel shows the absolute power spectra, while the right panel shows their ratio. The shaded region represents the 1σ cosmic variance across the ensemble, which is significant at large scales (k < 0.05 h/Mpc) but becomes small at higher k. The simulation achieves agreement within 5\% for k < 0.03 h/Mpc, but systematically underpredicts power at smaller scales, with a growing deficit for k > 0.1 h/Mpc.}
+    \label{fig:image1}
+\end{figure}
+
+As shown in the figure, the cosmic variance is substantial at the largest scales ($k \le 0.05 \, \text{h/Mpc}$), where the standard deviation across realizations can exceed 20\% of the mean power. This highlights the necessity of using simulation ensembles to obtain reliable predictions in this regime. At smaller scales ($k \ge 0.1 \, \text{h/Mpc}$), the cosmic variance becomes negligible ($<2\%$), and the ensemble average converges to a stable measurement.
+
+The ratio plot in Figure \ref{fig:image1} reveals three distinct regimes of agreement. On large cosmological scales ($k < 0.03 \, \text{h/Mpc}$), our simulation accurately reproduces the theoretical power spectrum, with the ratio being approximately 0.96, well within a 5\% agreement level. This confirms the simulation's fidelity in the linear and quasi-linear regimes. At intermediate scales ($0.03 \le k \le 0.1 \, \text{h/Mpc}$), we observe a systematic underprediction of power on the order of 10-15\%. At smaller scales ($k > 0.1 \, \text{h/Mpc}$), the deficit in power becomes more pronounced. This behavior is an expected and well-understood limitation of the Particle-Mesh method, where the gravitational force resolution is determined by the grid spacing. The finite grid acts as a low-pass filter, smoothing out density fluctuations and suppressing power near and below the grid scale.
+
+Figure \ref{fig:image0} provides an alternative visualization of the same result, focusing on the mean trend by omitting the cosmic variance band. This view clearly illustrates the excellent agreement at large scales and the progressive deviation at smaller scales, which is characteristic of the PM method's resolution limit. The results confirm that our GPU-accelerated simulation provides reliable predictions on the large scales most relevant for many cosmological analyses, such as Baryon Acoustic Oscillations.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../input_files/plots/step_6_plot_0_1778590772.png}
+    \caption{Ensemble-averaged matter power spectrum from 10 simulations using 2LPT initial conditions. Top: The mean simulated power spectrum, $\langle P_{sim}(k) \rangle$, is compared to the non-linear prediction from CAMB HaloFit, $P_{CAMB\_NL}(k)$. Bottom: The ratio of the simulated power to the theoretical prediction. The simulation agrees with the theoretical model to within 5\% at large scales ($k < 0.03$ h/Mpc), while systematically underpredicting power at smaller scales ($k > 0.1$ h/Mpc).}
+    \label{fig:image0}
+\end{figure}
+
+\end{document}
+                

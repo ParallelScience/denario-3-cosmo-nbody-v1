@@ -1,0 +1,39 @@
+\documentclass[]{article}
+
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{natbib}
+\usepackage{graphicx} 
+
+
+\begin{document}
+
+\subsection{Simulation setup}
+Our cosmological simulation employs a Particle-Mesh (PM) N-body method accelerated on a Graphics Processing Unit (GPU) using the NVIDIA Warp framework. We simulate a cubic volume of $(1000 \, \text{Mpc}/h)^3$ populated with $512^3$ dark matter particles. The gravitational forces are computed on a Cartesian grid with a resolution of $512^3$ cells, matching the particle number. The simulations adopt the fiducial flat $\Lambda$CDM cosmology of the Quijote simulation suite. To robustly quantify statistical properties and mitigate cosmic variance, we generate and analyze an ensemble of ten independent realizations, each initialized with a unique random seed.
+
+\subsection{Initial conditions}
+The initial conditions for each realization are generated at a starting redshift of $z=127$. We employ second-order Lagrangian Perturbation Theory (2LPT) to displace particles from a uniform grid, ensuring high accuracy in the initial particle distribution and velocities. The procedure begins by computing the linear matter power spectrum at $z=127$. From this power spectrum, a Gaussian random field is generated in Fourier space. This field is then used to compute the first-order displacement field, $\vec{\Psi}^{(1)}$, and the second-order scalar potential, $\Phi^{(2)}$. The final particle positions $\vec{q}$ and peculiar velocities $\vec{v}$ are then calculated according to the 2LPT formalism:
+\begin{align}
+\vec{q}(\vec{x}) &= \vec{x} + \vec{\Psi}^{(1)}(\vec{x}) + \vec{\Psi}^{(2)}(\vec{x}) \\
+\vec{v}(\vec{x}) &= a H(a) f_1(a) \vec{\Psi}^{(1)}(\vec{x}) + a H(a) f_2(a) \vec{\Psi}^{(2)}(\vec{x})
+\end{align}
+where $\vec{x}$ is the initial Lagrangian (grid) position, $a$ is the scale factor, $H(a)$ is the Hubble parameter, and $f_1$ and $f_2$ are the linear and second-order growth rate factors, respectively.
+
+\subsection{N-body evolution}
+The system of $512^3$ particles is evolved from $z=127$ to $z=0$ using a Leapfrog integrator with a total of 200 time steps. The time steps are chosen to be uniform in the scale factor $a$. At each step, the gravitational forces are computed using the PM method. First, the particle mass is assigned to the $512^3$ grid using a Cloud-in-Cell (CIC) interpolation scheme to obtain the matter density field, $\rho(\vec{x})$. The gravitational potential, $\phi(\vec{x})$, is then found by solving the Poisson equation in Fourier space:
+\begin{equation}
+\hat{\phi}(\vec{k}) = -4 \pi G \frac{\hat{\rho}(\vec{k})}{k^2}
+\end{equation}
+where hats denote Fourier-transformed quantities. This operation is efficiently performed using a three-dimensional Fast Fourier Transform (FFT). The gravitational force is subsequently computed by finite differencing the potential on the grid, and the resulting force field is interpolated back to each particle's position using the same CIC scheme. The Leapfrog integrator then updates the particle velocities and positions, including a correction for the Hubble drag.
+
+\subsection{Analysis and validation}
+To validate the physical accuracy of our simulation, we compute the matter power spectrum, $P(k)$, from the final particle snapshot at $z=0$. The power spectrum is estimated by first assigning the particles to the $512^3$ grid using the CIC method to create a density contrast field, $\delta(\vec{x})$. We then compute the 3D FFT of this field, $\hat{\delta}(\vec{k})$, and calculate the power by averaging the squared Fourier mode amplitudes in logarithmically spaced radial bins of wavenumber $k$:
+\begin{equation}
+P(k) = \langle |\hat{\delta}(\vec{k})|^2 \rangle_{k}
+\end{equation}
+The raw power spectrum is corrected for two systematic effects. First, we deconvolve the smoothing effect of the CIC mass assignment by dividing the power spectrum by the square of the CIC window function in Fourier space. Second, we subtract the shot noise contribution, which is equal to $1/\bar{n}$, where $\bar{n}$ is the mean particle number density.
+
+The primary evaluation metric is the comparison of our ensemble-averaged power spectrum, $\langle P(k) \rangle$, against the high-fidelity reference power spectrum from the Quijote simulation suite. We quantify the agreement by computing the ratio of our measured power spectrum to the Quijote reference. Additionally, we measure the wall-clock time for each realization to benchmark the performance of the GPU-accelerated implementation.
+
+\end{document}
+                

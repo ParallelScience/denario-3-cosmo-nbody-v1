@@ -1,0 +1,20 @@
+\documentclass[]{article}
+
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{natbib}
+\usepackage{graphicx} 
+
+
+\begin{document}
+
+Cosmological N-body simulations are a fundamental tool in modern cosmology, providing the primary method for modeling the non-linear evolution of large-scale structure. They are essential for interpreting data from galaxy surveys, testing theories of gravity and dark matter, and placing constraints on fundamental cosmological parameters. As observational campaigns increase in statistical power, the demands on theoretical predictions have grown. Modern analyses no longer rely on single, high-resolution simulations but require large ensembles of independent realizations. Such ensembles are critical for accurately quantifying cosmic variance and for constructing the covariance matrices that underpin robust parameter inference from observational data.
+
+The primary obstacle to generating these necessary simulation suites is their immense computational cost. Evolving a single cosmological volume to the present day using traditional N-body codes on Central Processing Units (CPUs) can demand thousands of core-hours. This computational expense creates a severe bottleneck, limiting the size and number of ensembles that can be produced and thereby restricting the statistical precision of cosmological analyses. Overcoming this challenge is crucial to fully realize the scientific potential of current and upcoming surveys.
+
+This work confronts this computational bottleneck by harnessing the massively parallel architecture of modern Graphics Processing Units (GPUs). We present a cosmological Particle-Mesh (PM) N-body simulation developed using NVIDIA Warp, a Python-based framework for writing high-performance GPU kernels. The PM method, which solves for gravitational forces on a grid, is exceptionally well-suited for GPU acceleration due to its reliance on operations like the Fast Fourier Transform. The objective of this paper is to develop and rigorously validate this approach as a practical tool for rapidly generating large ensembles of simulations that are accurate on cosmological scales.
+
+To achieve this, we conduct a comprehensive validation of both performance and physical accuracy. We evolve an ensemble of ten independent simulations, each containing $512^3$ particles within a comoving volume of $(1000 \, \text{Mpc}/h)^3$. The simulations are initialized at a redshift of $z=127$ using second-order Lagrangian Perturbation Theory (2LPT) to ensure fidelity with standard practices. We assess the physical accuracy of our method by comparing the ensemble-averaged matter power spectrum, $P(k)$, against results from the high-fidelity Quijote simulation suite. Our findings demonstrate a profound performance gain, reducing the wall-clock time for a single realization from hours to mere seconds. Critically, our GPU-accelerated simulation accurately reproduces the reference power spectrum on large scales, exhibiting deviations only at smaller scales where the PM method is limited by its grid resolution. This result validates the use of GPU acceleration with modern frameworks like Warp as an effective strategy for the efficient production of cosmological simulation ensembles.
+
+\end{document}
+                

@@ -1,0 +1,20 @@
+\documentclass[]{article}
+
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{natbib}
+\usepackage{graphicx} 
+
+
+\begin{document}
+
+In this paper, we addressed the significant computational challenge posed by the need for large ensembles of N-body simulations in modern cosmology. The high computational cost of traditional CPU-based codes creates a bottleneck for analyses requiring robust statistical error estimation. To overcome this, we developed and validated a cosmological Particle-Mesh (PM) N-body simulation accelerated on a Graphics Processing Unit (GPU) using the NVIDIA Warp framework.
+
+We conducted an ensemble of ten independent simulations, each evolving $512^3$ particles in a $(1000 \, \text{Mpc}/h)^3$ volume. The simulations were initialized at $z=127$ using second-order Lagrangian Perturbation Theory (2LPT) and evolved to $z=0$. Our analysis focused on two key aspects: computational performance and physical accuracy. The results demonstrate a profound performance gain, with the wall-clock time for a single realization reduced from hours on a CPU to approximately 20 seconds on a GPU. This enables the generation of large simulation suites in a matter of minutes.
+
+To validate the physical accuracy, we compared the ensemble-averaged matter power spectrum against theoretical predictions. Our GPU-accelerated simulation accurately reproduces the reference power spectrum on large cosmological scales ($k < 0.03 \, \text{h/Mpc}$), with agreement within 5\%. At smaller scales ($k > 0.1 \, \text{h/Mpc}$), the simulation systematically underpredicts power, a well-understood and expected consequence of the force resolution being limited by the grid spacing inherent to the PM method.
+
+We have learned that GPU acceleration with modern frameworks like NVIDIA Warp provides a viable and highly efficient solution for generating cosmological simulations. The validation confirms that our implementation is a powerful tool for applications where large-scale accuracy is paramount, such as studies of the Baryon Acoustic Oscillations or the construction of covariance matrices for galaxy surveys. While not suited for resolving small-scale non-linear structures, this approach effectively removes a major computational barrier, facilitating the rapid production of the large simulation ensembles required by next-generation cosmological analyses.
+
+\end{document}
+                
