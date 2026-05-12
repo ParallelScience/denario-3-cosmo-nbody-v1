@@ -1,0 +1,15 @@
+1. **2LPT Initial Conditions Generation**: Implement a 2LPT generator to replace the ZA approach. Compute the linear power spectrum using `camb` at $z=127$. Generate the first-order displacement field and the second-order potential $\phi^{(2)}$ using the same Gaussian random field. Calculate particle positions and velocities by applying the full 2LPT expansion to ensure the initial state matches the Quijote standard, minimizing transient errors at high-$k$.
+
+2. **Ensemble Simulation Framework**: Modify the simulation workflow to execute an ensemble of 10 independent realizations. Use distinct random seeds for each run to generate unique Gaussian random fields. Implement a batch execution script that clears the GPU context and resets memory between realizations to prevent fragmentation and OOM errors.
+
+3. **Warp PM Solver Execution**: Execute the PM simulation for each of the 10 realizations using the Leapfrog integrator. Maintain a fixed time-stepping scheme to preserve performance. Ensure all simulations use the $512^3$ particle and mesh configuration to maintain consistency across the ensemble.
+
+4. **Standardized Power Spectrum Pipeline**: Develop a $P(k)$ estimation routine that mirrors the Quijote pipeline. Perform CIC mass assignment to the $512^3$ grid, compute the 3D FFT, and calculate the power spectrum by averaging squared Fourier modes in radial bins. Explicitly match the Quijote $k$-binning edges, apply the CIC window function deconvolution, and subtract the shot noise contribution ($1/\bar{n}$). Truncate the comparison at $k \approx 0.5 \, h/\text{Mpc}$ to avoid the regime where grid-aliasing dominates.
+
+5. **Ensemble Averaging and Validation**: Compute the ensemble-averaged power spectrum $\langle P(k) \rangle$ from the 10 realizations. Compare this average directly against the Quijote fiducial reference data. Calculate the ratio $\langle P_{warp}(k) \rangle / P_{quijote}(k)$ across the range $0.01 \leq k \leq 0.5 \, h/\text{Mpc}$ to verify if the 5% agreement target is met for $k < 0.3 \, h/\text{Mpc}$.
+
+6. **Resolution Sensitivity Analysis**: If the 2LPT ensemble average exhibits a $>5\%$ deviation at $k \approx 0.3 \, h/\text{Mpc}$, perform a targeted resolution study. Run 1-2 realizations using a $1024^3$ mesh while keeping the particle count at $512^3$. Ensure the code handles the $8\times$ increase in FFT memory footprint carefully to avoid OOM errors, isolating the impact of grid-aliasing from physical dynamics.
+
+7. **Performance Benchmarking**: Conduct a wall-clock time analysis comparing the GPU-accelerated Warp implementation against the CPU-based `numpy/scipy` baseline. Break down the timing per step (CIC, FFT, force interpolation, integration) to quantify the speedup and identify computational bottlenecks on the RTX PRO 6000.
+
+8. **Data Synthesis and Reporting**: Compile the results into a final analysis. Document the impact of 2LPT on high-$k$ accuracy, the reduction of variance through ensemble averaging, and the final performance metrics. Attribute any remaining residuals to specific PM method limitations based on the resolution sensitivity analysis.
