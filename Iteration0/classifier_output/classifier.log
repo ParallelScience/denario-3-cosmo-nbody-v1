@@ -1,0 +1,90 @@
+
+###### PROMPT BEGINS ########
+Human: You are a scientific paper classifier. Your task is to determine the most appropriate top-level arXiv archive for the following paper.
+
+**Paper Title:** A GPU-Accelerated Particle-Mesh Cosmological Simulation with NVIDIA Warp: Implementation, Performance, and Validation
+
+**Abstract:** Cosmological N-body simulations are computationally demanding, which limits the generation of large statistical ensembles required for precision cosmology. We address this challenge by developing and benchmarking a GPU-accelerated Particle-Mesh (PM) simulation using the NVIDIA Warp framework. Our implementation leverages custom Warp kernels for Cloud-in-Cell (CIC) particle-grid operations and the cuFFT library for the Poisson solver. When simulating $512^3$ particles, our GPU code achieves a 1,348-fold per-step speedup over an equivalent multi-threaded CPU implementation, with the largest gains (over 2,000$\times$) in the particle-grid interaction steps. To validate the physical fidelity of the pipeline's components, we generated initial conditions at z=127 using the Zel'dovich Approximation. The resulting matter power spectrum, when linearly evolved to z=0, agrees with theoretical predictions from CAMB to within 4\% on large scales (k < 0.04 h/Mpc), while deviations on smaller scales are consistent with the known limitations of the approximation used. This work demonstrates that NVIDIA Warp is a highly effective tool for building performant cosmological codes, enabling the rapid generation of mock universes for large-scale structure analysis.
+
+**Archives:**
+- astro-ph: Astrophysics — cosmology, galaxies, stellar physics, planetary science, high-energy astrophysics, instrumentation
+- cond-mat: Condensed Matter — materials science, superconductivity, quantum gases, soft matter, statistical mechanics
+- cs: Computer Science — AI, machine learning, NLP, computer vision, algorithms, networking, security, software
+- econ: Economics — econometrics, general economics, theoretical economics
+- eess: Electrical Engineering and Systems Science — signal processing, image/video processing, audio/speech, control
+- gr-qc: General Relativity and Quantum Cosmology — gravitational physics, gravitational waves, black holes
+- hep-ex: High Energy Physics - Experiment — particle physics experiments, collider results
+- hep-lat: High Energy Physics - Lattice — lattice field theory, lattice QCD
+- hep-ph: High Energy Physics - Phenomenology — theoretical particle physics connected to experiment
+- hep-th: High Energy Physics - Theory — string theory, quantum field theory, supersymmetry
+- math: Mathematics — algebra, geometry, topology, analysis, probability, number theory, optimization
+- math-ph: Mathematical Physics — mathematical methods for physics problems
+- nlin: Nonlinear Sciences — chaos, pattern formation, solitons, integrable systems, self-organization
+- nucl-ex: Nuclear Experiment — experimental nuclear physics
+- nucl-th: Nuclear Theory — nuclear structure theory, hadron models, neutron stars
+- physics: Physics (General) — classical, computational, fluid dynamics, optics, plasma, applied, biological, chemical physics
+- q-bio: Quantitative Biology — biomolecules, genomics, neuroscience, populations, quantitative methods
+- q-fin: Quantitative Finance — computational finance, portfolio management, risk, pricing, trading
+- quant-ph: Quantum Physics — quantum information, computation, entanglement, foundations, optics
+- stat: Statistics — methodology, applications, machine learning (with statistical grounding), computation
+
+Select the single most appropriate archive for this paper. If the paper spans multiple fields, choose the one where the paper makes its primary contribution.
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-3.1-flash-lite-preview] ########
+archive='astro-ph' justification='The paper focuses on cosmological N-body simulations and the validation of matter power spectra, which are core topics within the astrophysics and cosmology community.'
+###### PROMPT BEGINS ########
+Human: You are a scientific paper classifier. You have already determined that this paper belongs to the **astro-ph** archive on arXiv. Now select the specific subcategory.
+
+**Paper Title:** A GPU-Accelerated Particle-Mesh Cosmological Simulation with NVIDIA Warp: Implementation, Performance, and Validation
+
+**Abstract:** Cosmological N-body simulations are computationally demanding, which limits the generation of large statistical ensembles required for precision cosmology. We address this challenge by developing and benchmarking a GPU-accelerated Particle-Mesh (PM) simulation using the NVIDIA Warp framework. Our implementation leverages custom Warp kernels for Cloud-in-Cell (CIC) particle-grid operations and the cuFFT library for the Poisson solver. When simulating $512^3$ particles, our GPU code achieves a 1,348-fold per-step speedup over an equivalent multi-threaded CPU implementation, with the largest gains (over 2,000$\times$) in the particle-grid interaction steps. To validate the physical fidelity of the pipeline's components, we generated initial conditions at z=127 using the Zel'dovich Approximation. The resulting matter power spectrum, when linearly evolved to z=0, agrees with theoretical predictions from CAMB to within 4\% on large scales (k < 0.04 h/Mpc), while deviations on smaller scales are consistent with the known limitations of the approximation used. This work demonstrates that NVIDIA Warp is a highly effective tool for building performant cosmological codes, enabling the rapid generation of mock universes for large-scale structure analysis.
+
+**Methods (if available):** \subsection{Initial conditions}
+The simulation follows the evolution of $512^3$ particles in a periodic cosmological box. The initial conditions were generated at a starting redshift of $z=127$ using the Zel'dovich Approximation. We first computed the linear matter power spectrum, $P(k)$, at this redshift using the Code for Anisotropies in the Microwave Background (CAMB), assuming the fiducial cosmology from the Quijote simulations ($\Omega_m=0.3175$, $h=0.6711$, $n_s=0.9624$, $\sigma_8=0.834$). A Gaussian random field was then realized in Fourier space, which was inverse-transformed to generate the displacement and velocity fields. Particles were displaced from a uniform grid according to these fields, setting up the initial state for the simulation.
+
+\subsection{GPU-accelerated Particle-Mesh simulation}
+We developed a Particle-Mesh (PM) gravity solver using the NVIDIA Warp framework, a Python-based toolkit for writing high-performance GPU kernels. The simulation loop consists of three main stages: mass assignment, solving for the gravitational potential, and updating particle positions and velocities.
+
+\subsubsection{Mass assignment and force interpolation}
+The particle mass is assigned to a regular $512^3$ grid using a Cloud-in-Cell (CIC) scheme. This step was implemented as a custom Warp kernel that iterates over all particles in parallel. To handle multiple particles contributing to the same grid cell concurrently, we used atomic add operations (`wp.atomic\_add`) to ensure thread-safe updates to the density field. After solving for the potential, the gravitational force at each particle's position is calculated by interpolating from the grid using the same CIC weighting scheme in a gather-style operation, also implemented as a custom Warp kernel.
+
+\subsubsection{Poisson solver}
+The gravitational potential, $\Phi$, is computed by solving the Poisson equation in comoving coordinates:
+\begin{equation}
+    \nabla^2 \Phi = \frac{3}{2} \Omega_m H_0^2 \frac{\delta}{a}
+\end{equation}
+where $\delta = (\rho - \bar{\rho}) / \bar{\rho}$ is the matter density contrast, $a$ is the scale factor, $\Omega_m$ is the matter density parameter, and $H_0$ is the Hubble constant. This equation is solved efficiently in Fourier space. The density grid is transformed using a 3D real-to-complex Fast Fourier Transform (FFT). In Fourier space, the equation becomes algebraic, and the potential $\hat{\Phi}(\mathbf{k})$ is found by dividing the density contrast $\hat{\delta}(\mathbf{k})$ by $-k^2$. The potential in real space is then recovered via an inverse FFT. For these operations, we leveraged the cuFFT library through its PyTorch interface (`torch.fft.rfftn` and `torch.fft.irfftn`).
+
+\subsubsection{Time integration}
+Particle trajectories are evolved using a standard leapfrog (kick-drift-kick) integrator. The `kick` steps update particle velocities based on the computed gravitational force, while the `drift` step updates their positions based on their velocities.
+
+\subsection{Performance benchmarking}
+To quantify the performance of our GPU implementation, we benchmarked it against an equivalent multi-threaded CPU version. The CPU code was written in Python using NumPy for array operations and SciPy (`scipy.fft`) for the FFT-based Poisson solver, configured to use all available CPU cores. We measured the wall-clock time for each major sub-step of the simulation loop (mass assignment, FFT solver, force interpolation) for both implementations. The reported timings are an average over five simulation steps, preceded by a warm-up phase to exclude any one-time kernel compilation overheads.
+
+\subsection{Validation and power spectrum estimation}
+We validated the physical fidelity of our pipeline by comparing the matter power spectrum against theoretical predictions. For this test, the initial particle displacements at $z=127$ were linearly evolved to $z=0$ by scaling them with the linear growth factor, $D(z=0)/D(z=127)$, calculated using CAMB.
+
+The matter power spectrum, $P(k)$, was estimated from the resulting $z=0$ particle snapshot using the following procedure. First, a density field was generated by assigning particles to a $512^3$ grid using the CIC method. This field was then converted to the density contrast, $\delta$. We computed the 3D Fourier transform of the density contrast field and calculated the raw power by averaging the squared amplitudes of the Fourier modes, $|\hat{\delta}(\mathbf{k})|^2$, in spherical shells of constant wavenumber, $k = |\mathbf{k}|$.
+
+To obtain the final power spectrum, two corrections were applied. First, we deconvolved the effect of the CIC mass assignment scheme by dividing the raw power by the square of the CIC window function, $W(\mathbf{k})$:
+\begin{equation}
+    W(\mathbf{k}) = \text{sinc}^2\left(\frac{k_x \Delta x}{2}\right) \text{sinc}^2\left(\frac{k_y \Delta y}{2}\right) \text{sinc}^2\left(\frac{k_z \Delta z}{2}\right)
+\end{equation}
+where $\Delta x, \Delta y, \Delta z$ are the grid cell sizes. Second, we subtracted the shot noise contribution, which is constant and equal to $1/\bar{n}$, where $\bar{n}$ is the mean particle number density. The resulting $P(k)$ was then compared to the linear theory prediction from CAMB at $z=0$.
+
+**Available subcategories in astro-ph:**
+- astro-ph.CO: Cosmology and Nongalactic Astrophysics — Phenomenology of early universe, cosmic microwave background, cosmological parameters, primordial element abundances, extragalactic distance scale, large-scale structure of the universe, dark energy and dark matter.
+- astro-ph.EP: Earth and Planetary Astrophysics — Interplanetary medium, planetary physics, planetary astrobiology, extrasolar planets, solar system formation and evolution, comets, asteroids, meteors.
+- astro-ph.GA: Astrophysics of Galaxies — Phenomena pertaining to galaxies or the Milky Way. Star clusters, HII regions, interstellar medium, molecular clouds, galactic structure, formation and evolution.
+- astro-ph.HE: High Energy Astrophysical Phenomena — Cosmic ray production, acceleration, propagation, detection. Gamma ray astronomy. Supernovae, neutron stars, pulsars, black holes, X-ray binaries, active galactic nuclei.
+- astro-ph.IM: Instrumentation and Methods for Astrophysics — Detector and telescope design, experiment proposals, laboratory astrophysics, data analysis methods, statistical methods, software and simulations.
+- astro-ph.SR: Solar and Stellar Astrophysics — White dwarfs, brown dwarfs, cataclysmic variables. Star formation and protostellar systems. Stellar structure, evolution, nucleosynthesis, atmospheres. The Sun.
+
+Select one primary subcategory and up to 3 secondary subcategories (from any archive) that also apply. The primary must be from the list above. Secondary categories may come from any arXiv category if the paper is interdisciplinary.
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-3.1-flash-lite-preview] ########
+primary_category='astro-ph.CO' secondary_categories=['astro-ph.IM', 'cs.MS'] justification='The paper focuses on cosmological N-body simulations for large-scale structure analysis (astro-ph.CO), while the core contribution is the development of a high-performance GPU-accelerated simulation method (astro-ph.IM) using computational techniques (cs.MS).'

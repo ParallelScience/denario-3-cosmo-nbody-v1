@@ -1,0 +1,8 @@
+{
+  "primary_category": "astro-ph.CO",
+  "secondary_categories": [
+    "astro-ph.IM",
+    "cs.MS"
+  ],
+  "justification": "The paper focuses on cosmological N-body simulations for large-scale structure analysis (astro-ph.CO), while the core contribution is the development of a high-performance GPU-accelerated simulation method (astro-ph.IM) using computational techniques (cs.MS)."
+}
