@@ -1,0 +1,66 @@
+[
+  {
+    "Agent": "camb response evaluator",
+    "Cost ($)": 0.00628825,
+    "Prompt Tokens": 22261.0,
+    "Completion Tokens": 482.0,
+    "Total Tokens": 22743.0,
+    "Model": "gemini-3.1-flash-lite-preview"
+  },
+  {
+    "Agent": "camb context",
+    "Cost ($)": 0.00676225,
+    "Prompt Tokens": 22447.0,
+    "Completion Tokens": 767.0,
+    "Total Tokens": 23214.0,
+    "Model": "gpt-4.1-2025-04-14"
+  },
+  {
+    "Agent": "control starter",
+    "Cost ($)": 0.001101,
+    "Prompt Tokens": 4326.0,
+    "Completion Tokens": 13.0,
+    "Total Tokens": 4339.0,
+    "Model": "gemini-3.1-flash-lite-preview"
+  },
+  {
+    "Agent": "controller",
+    "Cost ($)": 0.007837,
+    "Prompt Tokens": 31126.0,
+    "Completion Tokens": 37.0,
+    "Total Tokens": 31163.0,
+    "Model": "gemini-3.1-flash-lite-preview"
+  },
+  {
+    "Agent": "engineer response evaluator",
+    "Cost ($)": 0.04471325,
+    "Prompt Tokens": 80969.0,
+    "Completion Tokens": 16314.0,
+    "Total Tokens": 97283.0,
+    "Model": "gemini-3.1-flash-lite-preview"
+  },
+  {
+    "Agent": "engineer",
+    "Cost ($)": 0.841551,
+    "Prompt Tokens": 157637.0,
+    "Completion Tokens": 24576.0,
+    "Total Tokens": 182213.0,
+    "Model": "claude-sonnet-4-6"
+  },
+  {
+    "Agent": "executor response evaluator",
+    "Cost ($)": 0.0024705,
+    "Prompt Tokens": 6084.0,
+    "Completion Tokens": 633.0,
+    "Total Tokens": 6717.0,
+    "Model": "gemini-3.1-flash-lite-preview"
+  },
+  {
+    "Agent": "Total",
+    "Cost ($)": 0.9107232500000001,
+    "Prompt Tokens": 324850.0,
+    "Completion Tokens": 42822.0,
+    "Total Tokens": 367672.0,
+    "Model": NaN
+  }
+]

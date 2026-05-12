@@ -1,0 +1,98 @@
+{
+    "sub_tasks": [
+        {
+            "bullet_points": [
+                "Implement a 2LPT initial conditions generator using `camb` to compute the linear matter power spectrum P(k) at z=127 with Quijote fiducial cosmology (Ωm=0.3175, Ωb=0.049, h=0.6711, ns=0.9624, σ8=0.834, box=1000 Mpc/h, N=512)",
+                "Generate a Gaussian random field in Fourier space using fixed seed=0 and the correct IC amplitude formula: `amplitude = N³ / sqrt(2 * V) * sqrt(P_lin(k, z=127))`; do NOT apply an extra 1/N³ normalization after irfftn",
+                "Compute first-order (ZA) displacement field ψ⁽¹⁾ from the gradient of the linear potential",
+                "Compute second-order potential φ⁽²⁾ from the six cross-terms of the Hessian of φ⁽¹⁾, then derive ψ⁽²⁾ = -i * K * φ⁽²⁾",
+                "Apply 2LPT: positions = q + D1*ψ⁽¹⁾ + D2*ψ⁽²⁾, velocities = a*H*f1*ψ⁽¹⁾ + 2*a*H*f2*ψ⁽²⁾ with D2 = -3/7 * D1², f1=1.0 (matter-dominated at z=127), f2=2*f1",
+                "Use H(a) with H0=100 km/s/(Mpc/h) (not 67.11); use CAMB indexing pk_arr[1] for P(k, z=127) when requesting redshifts=[0, 127]",
+                "Validation check: compute the RMS displacement magnitude and verify it is much less than the mean inter-particle spacing L/N = 1000/512 ≈ 1.95 Mpc/h; print this diagnostic",
+                "Save particle positions and velocities as numpy arrays to the data directory; also save the CAMB P(k) interpolator or k/Pk arrays for reuse in Step 2",
+                "Print key diagnostics: sigma8 at z=0 (use s8_all[-1]), RMS displacement vs inter-particle spacing, particle count"
+            ],
+            "sub_task": "Generate 2LPT Initial Conditions with Validation",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Initialize the Warp GPU context and perform a warm-up pass before any timing begins; compile all Warp kernels once before the realization loop",
+                "Load the CAMB P(k) arrays saved in Step 1 and reuse them for all 10 seeds without recomputing CAMB",
+                "Load seed=0 ICs from Step 1; for seeds 1–9, generate 2LPT ICs on-the-fly using the same IC generation logic but with different random seeds",
+                "Implement the full PM solver in NVIDIA Warp (device='cuda'): CIC mass assignment kernel, FFT-based Poisson solver using `torch.fft`, force interpolation kernel, and leapfrog (kick-drift-kick) integrator with Hubble drag: Δv = F*dt - v*(da/a), where dt = da / (a_mid² * H(a_mid))",
+                "Run 500 time steps from z=127 to z=0 for each realization",
+                "Measure per-step timing breakdown (CIC, FFT, force, integration) only over the first 10 steps of the first realization using CUDA synchronization barriers (torch.cuda.synchronize()) before and after each sub-operation; do not time every step to avoid overhead",
+                "At z=0, compute the matter power spectrum P(k) for each realization using CIC mass assignment to 512³ grid, 3D FFT, radial binning, CIC window function deconvolution, and shot noise subtraction (1/n_bar)",
+                "Save all 10 P(k) arrays, k-bin centers, per-realization wall-clock times, and per-step timing breakdown to the data directory",
+                "Print wall-clock time per realization and the per-step breakdown summary"
+            ],
+            "sub_task": "Implement and Run GPU PM Simulation (Warp) for 10 Realizations",
+            "sub_task_agent": "engineer",
+            "code_execution_timeout": 1800
+        },
+        {
+            "bullet_points": [
+                "Implement an equivalent PM simulation using only numpy/scipy (no GPU) for a single realization (seed=0) using the same ICs from Step 1",
+                "Use exactly the same algorithmic structure as the GPU implementation: same CIC stencil, same Poisson kernel normalization, same leapfrog scheme with Hubble drag (Δv = F*dt - v*(da/a)), same k-space force kernel",
+                "Run for 10–20 steps to obtain reliable per-step timing; extrapolate to estimate the full 500-step wall-clock time",
+                "Record and print per-step timing breakdown (CIC, FFT, force, integration) and total measured time plus extrapolated full-run time",
+                "Save all timing results (measured and extrapolated) to the data directory as a JSON or npz file"
+            ],
+            "sub_task": "Implement CPU Baseline PM Simulation for Benchmarking",
+            "sub_task_agent": "engineer",
+            "code_execution_timeout": 1800
+        },
+        {
+            "bullet_points": [
+                "Attempt to download the Quijote fiducial P(k) at z=0 from the public GitHub URL; if the download fails, fall back to reconstructing a reference P(k) from the linear CAMB spectrum scaled by a halofit nonlinear boost factor computed via CAMB, and print a clear warning indicating the fallback was used",
+                "Load all 10 P(k) arrays saved in Step 2",
+                "Compute the ensemble-averaged power spectrum <P(k)> and its 1-sigma standard deviation across the 10 realizations",
+                "Interpolate the Quijote reference onto the simulation k-bins and compute the ratio <P_warp(k)> / P_quijote(k) across k range 0.01–0.5 h/Mpc",
+                "Print the ratio at key k values (0.05, 0.1, 0.2, 0.3, 0.5 h/Mpc) and identify where the 5% threshold is first exceeded",
+                "Save the ensemble-averaged P(k), standard deviation, ratio array, k-bins, and Quijote reference to the data directory"
+            ],
+            "sub_task": "Download Quijote Reference P(k) and Compute Ensemble-Averaged P(k)",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Before launching the 1024³ run, print available GPU VRAM and estimate the memory footprint of the 1024³ FFT arrays; proceed only if sufficient memory is available",
+                "Run 1–2 realizations (seeds 0 and 1) using a 1024³ mesh while keeping particle count at 512³; use the same 2LPT ICs from Step 1 for seed=0 and generate seed=1 ICs on-the-fly",
+                "Use 200 time steps (not 500) to stay within the timeout; note that large-scale structure is established early and the P(k) comparison is still valid for resolution analysis",
+                "Compute P(k) for each 1024³ run with CIC window deconvolution appropriate for the 1024³ grid and shot noise subtraction",
+                "Load the 512³ ensemble average from Step 4 and the Quijote reference; compute ratios P_1024(k)/P_quijote(k) and P_1024(k)/P_512_ensemble(k)",
+                "Print the ratio P_1024(k)/P_quijote(k) at key k values (0.05, 0.1, 0.2, 0.3, 0.5 h/Mpc)",
+                "Save the 1024³ P(k) results and ratio arrays to the data directory"
+            ],
+            "sub_task": "Resolution Sensitivity Analysis with 1024³ Mesh",
+            "sub_task_agent": "engineer",
+            "code_execution_timeout": 1800
+        },
+        {
+            "bullet_points": [
+                "Load all saved results: 10 individual P(k) from Step 2, ensemble average and Quijote reference from Step 4, 1024³ P(k) from Step 5, timing data from Steps 2 and 3, and linear theory P(k) from CAMB (saved in Step 1)",
+                "Plot 1 (P(k) comparison, 2-panel): Top panel — log-log axes showing individual 512³ realizations (thin gray lines), 512³ ensemble average (thick blue), 1024³ result (green), Quijote reference (dashed red), and linear theory CAMB P(k) at z=0 (dotted black); mark vertical reference lines at k_Nyq/2 = π×512/(2×1000) and k_Nyq = π×512/1000 ≈ 1.6 h/Mpc. Bottom panel — ratio P_warp(k)/P_quijote(k) for both 512³ ensemble and 1024³, with ±5% band shaded in gray; use log x-axis",
+                "Plot 2 (Speedup benchmark, grouped bar chart): Show per-step wall-clock time for GPU (Warp, solid bars) vs CPU (numpy, hatched bars) broken down by sub-operation (CIC, FFT, force, integration); add a second panel or annotation showing total simulation time (GPU measured vs CPU extrapolated) with speedup factor labeled directly on the figure",
+                "Plot 3 (Ensemble variance): Two-panel figure — top panel shows the 1-sigma fractional scatter across 10 realizations (std/mean) as a function of k; bottom panel shows the ratio of each individual realization to the ensemble mean, with the Quijote ratio overlaid",
+                "Use log x-axis for all k-space plots; add grid lines; avoid LaTeX rendering; save all plots with timestamps to the data directory"
+            ],
+            "sub_task": "Generate All Plots",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Synthesize all quantitative results from Steps 1–6 into a comprehensive Results section suitable for a scientific paper",
+                "Report the IC validation diagnostic: RMS displacement vs inter-particle spacing, confirming the perturbative regime at z=127",
+                "Report the ensemble-averaged P(k) accuracy: ratio values at key k bins (0.05, 0.1, 0.2, 0.3, 0.5 h/Mpc), where the 5% threshold is met/exceeded, and comparison between 512³ and 1024³ mesh results",
+                "Report the GPU vs CPU speedup: total wall-clock time (measured GPU, extrapolated CPU), per-step breakdown, and speedup factors for each sub-operation",
+                "Interpret the P(k) ratio deviations across three k regimes with theoretical grounding: (1) low k < 0.1 h/Mpc — cosmic variance from finite ensemble; (2) intermediate 0.1–0.3 h/Mpc — PM force resolution and 2LPT accuracy; (3) high k > 0.3 h/Mpc — grid aliasing and PM approximation breakdown; ground each regime's discussion in the actual numerical ratios observed",
+                "Discuss the ensemble variance across 10 realizations and what it implies about cosmic variance at different scales",
+                "Reference all three generated plots by their content descriptions",
+                "Include a qualitative assessment of where and why the PM+2LPT simulation deviates from the full Quijote result, attributing residuals to specific physical and numerical causes"
+            ],
+            "sub_task": "Write Full Results Section",
+            "sub_task_agent": "researcher"
+        }
+    ]
+}

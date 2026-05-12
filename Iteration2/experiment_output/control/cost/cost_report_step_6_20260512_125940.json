@@ -1,0 +1,82 @@
+[
+  {
+    "Agent": "camb response evaluator",
+    "Cost ($)": 0.01563075,
+    "Prompt Tokens": 52635.0,
+    "Completion Tokens": 1648.0,
+    "Total Tokens": 54283.0,
+    "Model": "gemini-3.1-flash-lite-preview"
+  },
+  {
+    "Agent": "camb context",
+    "Cost ($)": 0.052072,
+    "Prompt Tokens": 11680.0,
+    "Completion Tokens": 32768.0,
+    "Total Tokens": 44448.0,
+    "Model": "gpt-4.1-2025-04-14"
+  },
+  {
+    "Agent": "control starter",
+    "Cost ($)": 0.001125,
+    "Prompt Tokens": 4422.0,
+    "Completion Tokens": 13.0,
+    "Total Tokens": 4435.0,
+    "Model": "gemini-3.1-flash-lite-preview"
+  },
+  {
+    "Agent": "controller",
+    "Cost ($)": 0.02008525,
+    "Prompt Tokens": 80119.0,
+    "Completion Tokens": 37.0,
+    "Total Tokens": 80156.0,
+    "Model": "gemini-3.1-flash-lite-preview"
+  },
+  {
+    "Agent": "engineer response evaluator",
+    "Cost ($)": 0.1260735,
+    "Prompt Tokens": 414768.0,
+    "Completion Tokens": 14921.0,
+    "Total Tokens": 429689.0,
+    "Model": "gemini-3.1-flash-lite-preview"
+  },
+  {
+    "Agent": "image reviewer",
+    "Cost ($)": 0.00087135,
+    "Prompt Tokens": 7842.0,
+    "Completion Tokens": 944.0,
+    "Total Tokens": 8786.0,
+    "Model": "gemini-3.1-flash-image-preview"
+  },
+  {
+    "Agent": "image review recorder",
+    "Cost ($)": 0.0041105,
+    "Prompt Tokens": 4508.0,
+    "Completion Tokens": 1989.0,
+    "Total Tokens": 6497.0,
+    "Model": "gemini-3.1-flash-lite-preview"
+  },
+  {
+    "Agent": "engineer",
+    "Cost ($)": 2.487678,
+    "Prompt Tokens": 624426.0,
+    "Completion Tokens": 40960.0,
+    "Total Tokens": 665386.0,
+    "Model": "claude-sonnet-4-6"
+  },
+  {
+    "Agent": "executor response evaluator",
+    "Cost ($)": 0.0029045,
+    "Prompt Tokens": 8066.0,
+    "Completion Tokens": 592.0,
+    "Total Tokens": 8658.0,
+    "Model": "gemini-3.1-flash-lite-preview"
+  },
+  {
+    "Agent": "Total",
+    "Cost ($)": 2.7105508499999997,
+    "Prompt Tokens": 1208466.0,
+    "Completion Tokens": 93872.0,
+    "Total Tokens": 1302338.0,
+    "Model": NaN
+  }
+]
