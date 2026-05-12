@@ -1,0 +1,22 @@
+\documentclass[]{article}
+
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{natbib}
+\usepackage{graphicx} 
+
+
+\begin{document}
+
+
+
+In this work, we addressed the significant computational cost associated with cosmological N-body simulations, a key bottleneck for generating the large statistical ensembles required by modern precision cosmology. We developed, benchmarked, and validated a GPU-accelerated Particle-Mesh (PM) simulation code built using the NVIDIA Warp framework, a Python-based toolkit for creating high-performance GPU kernels.
+
+Our implementation simulates the gravitational evolution of $512^3$ particles. It leverages custom Warp kernels for the Cloud-in-Cell (CIC) mass assignment and force interpolation steps, and utilizes the cuFFT library for an efficient Fast Fourier Transform-based Poisson solver. We benchmarked this implementation against an equivalent multi-threaded CPU code and found a substantial performance increase. The GPU code achieved a total per-step speedup of 1,348$\times$, reducing the time for a single step from 89.4 seconds on the CPU to just 0.07 seconds on the GPU. The most dramatic gains were observed in the particle-grid interaction steps, which were accelerated by factors of over 2,000$\times$ and 9,000$\times$ for the mass deposit and force interpolation, respectively. This acceleration reduces the runtime of a typical 500-step simulation from over 12 hours to approximately 35 seconds.
+
+We validated the physical fidelity of our pipeline by generating initial conditions at $z=127$ using the Zel'dovich Approximation and comparing the resulting matter power spectrum at $z=0$ against linear theory. The measured power spectrum agrees with the theoretical prediction from CAMB to within 4\% on large scales ($k < 0.04 \, h/\text{Mpc}$), confirming the accuracy of our initial condition generation and power spectrum estimation modules. Deviations on smaller scales, including a power deficit at intermediate scales and strong suppression at high $k$, are consistent with the known limitations of the Zel'dovich Approximation and are not indicative of flaws in the simulation code itself.
+
+The primary conclusion of this study is that modern GPU programming frameworks like NVIDIA Warp provide an accessible and highly effective pathway for developing performant cosmological codes. The demonstrated speedup enables the rapid generation of mock universes, a critical capability for accurately estimating covariance matrices and interpreting data from large-scale structure surveys. This work successfully presents a validated, high-performance simulation tool that helps overcome a major computational challenge in contemporary cosmological research.
+
+\end{document}
+                

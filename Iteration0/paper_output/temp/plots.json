@@ -1,0 +1,17 @@
+{
+  "image0": {
+    "key": "image0",
+    "name": "step_5_results_summary.png",
+    "caption": "Summary of performance and validation for the GPU-accelerated Particle-Mesh (PM) simulation. The matter power spectrum is compared against the CAMB linear theory reference. Per-step timings for the GPU kernels show the Fast Fourier Transform (FFT) is the most computationally intensive step, taking approximately 0.05s. The speedup factor for each kernel is benchmarked against a multi-threaded CPU implementation. A 2D projection of the particle density field illustrates the initial, unperturbed grid structure of the simulation."
+  },
+  "image1": {
+    "key": "image1",
+    "name": "pk_comparison.png",
+    "caption": "Validation of the matter power spectrum, P(k), at z=0. The left panel compares the power spectrum from the Zel'dovich Approximation (ZA) simulation (red dashed line) against the linear theory prediction from CAMB (black solid line). The right panel shows the ratio of the two spectra, P\\_ZA/P\\_CAMB. The simulation agrees with linear theory to within approximately 4\\% on large scales (k < 0.04 h/Mpc), validating the initial conditions pipeline. The power deficit at intermediate scales (k \\textasciitilde 0.1 h/Mpc) is consistent with finite-N effects in the initial displacement field, while the strong suppression at small scales (k > 0.15 h/Mpc) is an expected limitation of the ZA due to shell-crossing."
+  },
+  "image2": {
+    "key": "image2",
+    "name": "density_projection.png",
+    "caption": "Projected particle density from a N=128\u00b3 simulation in a 1000 Mpc/h box, showing the initial conditions at z=127 (left) and their subsequent evolution to z=0 via the Zel'dovich Approximation (ZA) (right). The ZA propagation correctly transforms the nearly homogeneous initial state into the characteristic cosmic web structure, with clearly visible filaments, voids, and proto-cluster nodes."
+  }
+}

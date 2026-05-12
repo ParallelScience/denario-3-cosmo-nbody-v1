@@ -1,0 +1,20 @@
+\documentclass[]{article}
+
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{natbib}
+\usepackage{graphicx} 
+
+
+\begin{document}
+
+Cosmological N-body simulations are a cornerstone of modern astrophysics, providing the primary theoretical tool for modeling the non-linear evolution of large-scale structure. These simulations track the gravitational dynamics of millions to billions of particles, bridging the physical gap between the primordial density fluctuations observed in the cosmic microwave background and the intricate cosmic web of galaxies and voids observed today. With the advent of large-volume galaxy surveys, the demand for such simulations has intensified. Generating large statistical ensembles, often comprising thousands of individual runs, is now essential for accurately estimating covariance matrices, marginalizing over systematic effects, and robustly constraining cosmological parameters.
+
+This demand, however, faces a significant computational bottleneck. High-fidelity cosmological simulations are exceptionally resource-intensive, with single runs often requiring millions of CPU hours. This computational cost makes the generation of large simulation suites prohibitively slow, limiting the statistical power available for cosmological analysis. While the massive parallelism of Graphics Processing Units (GPUs) offers a clear path to accelerating these computations, the historical complexity of GPU programming has presented a barrier to entry for many researchers. Developing efficient code has traditionally required specialized, low-level expertise, hindering the widespread adoption of GPU-based solutions in the field.
+
+In this work, we address this challenge by developing and validating a GPU-accelerated cosmological simulation using NVIDIA Warp, a modern Python-based framework designed to simplify the creation of high-performance GPU kernels. We implement a Particle-Mesh (PM) algorithm, which offers a favorable balance between computational efficiency and physical accuracy for modeling gravitational dynamics on large scales. Our implementation uses custom Warp kernels for the critical particle-grid interaction steps—namely, the Cloud-in-Cell (CIC) mass assignment and force interpolation—and leverages the cuFFT library for an efficient Fast Fourier Transform-based Poisson solver. The particle trajectories are evolved from high redshift to the present day using a standard leapfrog integrator.
+
+The primary goals of this paper are to quantify the performance of our implementation and validate its physical fidelity. We first demonstrate the computational advantage of our approach by benchmarking the Warp-based GPU code against an equivalent multi-threaded CPU implementation, measuring the speedup achieved in each component of the simulation loop. We then assess the physical accuracy of our code by running a simulation with initial conditions generated using the Zel'dovich Approximation and comparing the resulting matter power spectrum, $P(k)$, at redshift $z=0$ against the publicly available results from the high-precision Quijote simulations. This work demonstrates that modern frameworks like Warp provide an accessible and effective pathway for developing performant cosmological codes, enabling the rapid generation of mock universes needed to meet the growing computational demands of precision cosmology.
+
+\end{document}
+                

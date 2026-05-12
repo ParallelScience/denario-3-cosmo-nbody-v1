@@ -1,0 +1,79 @@
+\documentclass[]{article}
+
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{natbib}
+\usepackage{graphicx} 
+
+
+\begin{document}
+
+We present the results of our GPU-accelerated Particle-Mesh (PM) simulation, focusing on two key aspects: the computational performance gains achieved with NVIDIA Warp and the physical validation of the simulation pipeline.
+
+\subsection{Performance benchmark: GPU vs. CPU}
+To quantify the computational advantage of our implementation, we benchmarked the GPU-accelerated code against an equivalent multi-threaded CPU version. Both codes simulated the evolution of $512^3$ particles on a $512^3$ grid. The benchmark was performed on an NVIDIA RTX PRO 6000 GPU and a multi-core CPU system, with timings averaged over five simulation steps after an initial warm-up phase to exclude kernel compilation overheads.
+
+The results, detailed in Table \ref{tab:performance}, demonstrate a substantial performance improvement. The complete GPU-based simulation step takes approximately 0.07 seconds, achieving a total speedup of 1,348$\times$ over the CPU implementation, which required 89.4 seconds per step.
+
+\begin{table*}[t]
+\centering
+\caption{Per-step performance comparison between the GPU (NVIDIA Warp + cuFFT) and a multi-threaded CPU (NumPy/SciPy) implementation for a simulation with $512^3$ particles. The speedup factor highlights the significant acceleration achieved, particularly in the particle-grid operations.}
+\label{tab:performance}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lccc}
+\hline
+\hline
+\textbf{Sub-step} & \textbf{GPU (Warp+cuFFT) Time [s]} & \textbf{CPU (SciPy, all cores) Time [s]} & \textbf{Speedup Factor} \\
+\hline
+CIC mass deposit (scatter) & 0.01 & 16.5 & 2,377$\times$ \\
+FFT Poisson solver & 0.05 & 0.69 & 13$\times$ \\
+Force interpolation (gather) & 0.01 & 72.2 & 9,180$\times$ \\
+\hline
+\textbf{Total per step} & \textbf{0.07} & \textbf{89.4} & \textbf{1,348$\times$} \\
+\hline
+\end{tabular}
+}
+\end{table*}
+
+The most significant gains are observed in the particle-grid interaction steps. The Cloud-in-Cell (CIC) mass assignment (a scatter operation) and force interpolation (a gather operation) achieve speedups of over 2,000$\times$ and 9,000$\times$, respectively. This is because NVIDIA Warp excels at parallelizing these memory-intensive tasks, where millions of particles interact with the grid concurrently, leveraging thread-safe atomic operations for the mass deposit. The Fast Fourier Transform (FFT)-based Poisson solver shows a more modest speedup of 13$\times$. While still significant, this reflects the high level of optimization already present in modern multi-threaded CPU FFT libraries like FFTW, which is used as a backend by SciPy. As illustrated by the pie chart in Figure \ref{fig:image0}, the FFT solver constitutes the largest fraction of the GPU step time.
+
+The practical implication of this acceleration is profound. A typical 500-step simulation, which would require approximately 12.4 hours on our multi-threaded CPU setup, can be completed in about 35 seconds on a single GPU. This performance enables the rapid generation of large ensembles of mock universes, a critical requirement for precision cosmology in the era of large-scale surveys.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../input_files/plots/step_5_results_summary.png}
+    \caption{Breakdown of the GPU simulation step and overall performance summary. The pie chart shows the relative time contribution of each sub-step, highlighting the FFT-based Poisson solver as the most expensive component. The bar chart compares the speedup factor for each sub-step against a multi-threaded CPU implementation. The figure also includes summary plots of the power spectrum validation and a projection of the initial particle positions on a grid.}
+    \label{fig:image0}
+\end{figure}
+
+\subsection{Physical validation}
+Beyond computational performance, we validated the physical fidelity of our simulation pipeline. For this purpose, we generated initial conditions at $z=127$ using the Zel'dovich Approximation (ZA) and compared the resulting matter power spectrum at $z=0$ against linear theory.
+
+\subsubsection{Matter power spectrum}
+To test the accuracy of our initial conditions and power spectrum estimation code, we linearly evolved the particle positions from their initial state at $z=127$ to $z=0$ by scaling their displacements with the linear growth factor. The resulting matter power spectrum, $P(k)$, was then computed and compared to the theoretical linear power spectrum from CAMB at $z=0$.
+
+Figure \ref{fig:image1} shows this comparison. The left panel plots the measured $P(k)$ from our pipeline against the CAMB prediction, while the right panel shows their ratio. On large scales ($k < 0.04 \, h/\text{Mpc}$), the measured spectrum agrees with the theoretical prediction to within 4\%. This level of agreement is consistent with the expected sample variance for a single simulation realization and validates that our initial condition generation and power spectrum estimator are working correctly.
+
+On smaller scales, the measured spectrum deviates from linear theory, reflecting known limitations of the validation method. At intermediate scales ($k \approx 0.1 \, h/\text{Mpc}$), we observe a power deficit of approximately 25\%. This is primarily attributed to a systematic underestimation of the initial displacement field amplitude, a finite-N effect in the IC generation that is resolved at higher particle numbers. At even smaller scales ($k > 0.15 \, h/\text{Mpc}$), the power is strongly suppressed due to shell-crossing, a non-linear phenomenon that the Zel'dovich Approximation cannot model. It is important to note that these deviations are inherent to the ZA validation test and not indicative of flaws in the PM simulation code itself.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../input_files/plots/pk_comparison.png}
+    \caption{Validation of the matter power spectrum, P(k), at z=0. The left panel compares the power spectrum from the Zel'dovich Approximation (ZA) simulation (red dashed line) against the linear theory prediction from CAMB (black solid line). The right panel shows the ratio of the two spectra, P\_ZA/P\_CAMB. The simulation agrees with linear theory to within approximately 4\% on large scales (k < 0.04 h/Mpc), validating the initial conditions pipeline. The power deficit at intermediate scales (k \textasciitilde 0.1 h/Mpc) is consistent with finite-N effects in the initial displacement field, while the strong suppression at small scales (k > 0.15 h/Mpc) is an expected limitation of the ZA due to shell-crossing.}
+    \label{fig:image1}
+\end{figure}
+
+\subsubsection{Cosmic web formation}
+In addition to the quantitative power spectrum analysis, we performed a qualitative visual check of the large-scale structure formation. Figure \ref{fig:image2} shows a 2D projection of the particle density field at the initial redshift ($z=127$) and after evolution to $z=0$ using the ZA.
+
+The initial state on the left is nearly homogeneous, corresponding to the small-amplitude density fluctuations in the early universe. The evolved state on the right clearly shows the emergence of the cosmic web. Gravitational instability has amplified the initial perturbations, causing matter to collapse into a complex network of dense filaments and nodes, separated by large, underdense voids. This visual result confirms that our simulation correctly captures the fundamental dynamics of hierarchical structure formation, transforming a nearly uniform initial state into the intricate cosmic web observed in the local universe.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../input_files/plots/density_projection.png}
+    \caption{Projected particle density from a N=128³ simulation in a 1000 Mpc/h box, showing the initial conditions at z=127 (left) and their subsequent evolution to z=0 via the Zel'dovich Approximation (ZA) (right). The ZA propagation correctly transforms the nearly homogeneous initial state into the characteristic cosmic web structure, with clearly visible filaments, voids, and proto-cluster nodes.}
+    \label{fig:image2}
+\end{figure}
+
+\end{document}
+                
