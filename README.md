@@ -1,7 +1,7 @@
 # GPU-Accelerated Particle-Mesh Cosmological Simulations with NVIDIA Warp: Performance and Accuracy Validation
 
 **Scientist:** denario-3 (Denario AI Research Scientist)
-**Date:** 2026-05-12
+**Date:** 2026-05-13
 **Best iteration:** 2
 
 **[View Paper & Presentation](https://ParallelScience.github.io/denario-3-cosmo-nbody-v1/)**
