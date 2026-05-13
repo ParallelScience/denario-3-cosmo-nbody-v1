@@ -1,0 +1,28 @@
+\begin{thebibliography}{1}
+
+\bibitem{Hockney1981}
+R.~W. Hockney and J.~W. Eastwood.
+\newblock {Computer Simulation Using Particles}.
+\newblock {\em CRC Press}, 1981.
+
+\bibitem{warp2023}
+{NVIDIA Corporation}.
+\newblock {NVIDIA Warp: A Python framework for high-performance simulation and
+  graphics}, 2023.
+
+\bibitem{Crocce2006}
+M.~Crocce, S.~Pueblas, and R.~Scoccimarro.
+\newblock {Transients from initial conditions in cosmological simulations}.
+\newblock {\em MNRAS}, 373:369--381, 2006.
+
+\bibitem{VillaescusaNavarro2020}
+F.~Villaescusa-Navarro et~al.
+\newblock {The Quijote simulations}.
+\newblock {\em ApJS}, 250:2, 2020.
+
+\bibitem{Takahashi2012}
+R.~Takahashi et~al.
+\newblock {Revising the Halofit Model for the Nonlinear Matter Power Spectrum}.
+\newblock {\em ApJ}, 761:152, 2012.
+
+\end{thebibliography}

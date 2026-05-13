@@ -1,0 +1,15 @@
+1. **Resolution and Force Convergence Study**: Execute simulations using both $512^3$ and $1024^3$ mesh resolutions with a fixed $512^3$ particle set. To isolate the source of power suppression, perform a "force-only" convergence check by comparing the gravitational potential $\phi$ and the force field at a single snapshot between the two resolutions. This distinguishes between artifacts arising from mass assignment (CIC) versus the Poisson solver/gradient calculation.
+
+2. **CIC Window Deconvolution and Theoretical Modeling**: Develop a theoretical PM-prediction model that incorporates the combined CIC window function $W^2(k)$ (accounting for both mass assignment and force interpolation). Apply the inverse window function $W^{-2}(k)$ to the measured density field in Fourier space. This model serves as the "expected" baseline to distinguish between algorithmic PM behavior and implementation errors.
+
+3. **Shot Noise and Variance Analysis**: Calculate the effective number density $\bar{n}$ based on the actual particle count to standardize shot noise subtraction. Perform a variance analysis at low-$k$ ($k < 0.03 \, h/\text{Mpc}$) by calculating the expected cosmic variance $\sigma_{CV} = \sqrt{2/N_{modes}(k)}$ for the simulation volume. Use these as error bars to determine if low-$k$ residuals are statistically significant or consistent with finite-volume effects.
+
+4. **Granular Performance Profiling**: Benchmark the Warp implementation on the RTX PRO 6000, separating execution times for FFT (compute-bound) and CIC mass assignment (memory-bandwidth-bound) kernels. Monitor GPU memory throughput to identify if the $1024^3$ configuration hits a memory saturation bottleneck, providing data to define the optimal mesh-to-particle ratio for the hardware.
+
+5. **Data Synthesis and Validation**: Compile the deconvolution-corrected $P(k)$ measurements and calculate the ratio $\langle P_{warp}(k) \rangle / P_{quijote}(k)$. Verify the 5% agreement target for $k < 0.3 \, h/\text{Mpc}$.
+
+6. **Distinguishing Errors from Algorithmic Limitations**: In the final analysis, explicitly categorize residuals into "numerical errors" (e.g., aliasing, implementation bugs) and "algorithmic limitations" (e.g., the inherent inability of PM to capture non-linear power at high-$k$ compared to the Quijote 2LPT/N-body reference).
+
+7. **Consistency Check with Reference Data**: Standardize the shot noise correction by ensuring the $1/\bar{n}$ subtraction method matches the processing pipeline used for the Quijote reference data. Document this consistency to ensure the high-$k$ comparison is not biased by methodological differences.
+
+8. **Final Reporting**: Synthesize the performance benchmarks, resolution study results, and $P(k)$ validation into a comprehensive report. Summarize the GPU speedup and provide a quantitative explanation for the observed deviations, clearly separating hardware-specific performance insights from cosmological simulation accuracy.
