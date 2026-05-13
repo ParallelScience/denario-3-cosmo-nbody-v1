@@ -8,5 +8,10 @@
     "key": "image1",
     "name": "pk_ensemble.png",
     "caption": "The ensemble-averaged matter power spectrum from 10 Warp PM simulations using 2LPT initial conditions (red line) compared against the CAMB HaloFit theoretical prediction (black line). The left panel shows the absolute power spectra, while the right panel shows their ratio. The shaded region represents the 1\u03c3 cosmic variance across the ensemble, which is significant at large scales (k < 0.05 h/Mpc) but becomes small at higher k. The simulation achieves agreement within 5\\% for k < 0.03 h/Mpc, but systematically underpredicts power at smaller scales, with a growing deficit for k > 0.1 h/Mpc."
+  },
+  "image2": {
+    "key": "image2",
+    "name": "pk_500steps.png",
+    "caption": "The matter power spectrum from a 10-realization ensemble of Particle-Mesh simulations, initialized with second-order Lagrangian Perturbation Theory (2LPT) and evolved over 500 steps, compared against the theoretical CAMB HaloFit prediction. The left panel shows the absolute power spectra, with the ensemble mean (red dashed line) and 1\u03c3 scatter (shaded area). The right panel displays the ratio of the simulated to the theoretical power spectrum, demonstrating that the simulation achieves the target 5\\% accuracy (indicated by the grey dotted lines) over the wavenumber range k = 0.04\u20130.22 h/Mpc. Deviations at low k are dominated by cosmic variance, while the power suppression at high k is due to the simulation's force resolution limit."
   }
 }

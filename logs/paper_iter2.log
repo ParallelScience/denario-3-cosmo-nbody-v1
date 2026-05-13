@@ -1,19 +1,17 @@
 /opt/denario-venv/lib/python3.12/site-packages/denario/langgraph_agents/paper_module/LaTeX/AAS_keywords.txt
-Repeated: step_6_plot_1_1778590772.png (same as step_6_plot_0_1778590772.png)
-Repeated: step_6_plot_2_1778590772.png (same as step_6_plot_0_1778590772.png)
-Extracting UNESCO keywords.......
-Found 2 plot files to process....
-Plot files: ['step_6_plot_0_1778590772.png', 'pk_ensemble.png']
+Extracting UNESCO keywords.......Abstract found on Abstract.tex...
+
+Found 3 plot files to process....
+Plot files: ['step_6_plot_0_1778590772.png', 'pk_ensemble.png', 'pk_500steps.png']
 UNESCO keyword extraction failed: 'list' object has no attribute 'find'
-✅✅.................Abstract written
-✅✅...............Captions generated
+✅...............Captions generated
 ✅................Figures generated
-✅.............Introduction written
-✅..................Methods written
-❌✅..................Results written
-✅..............Conclusions written
+Introduction found on Introduction.tex
+Methods found on Methods.tex.....
+Results found on Results.tex.....
+Conclusions found on Conclusions.tex
 Compiling paper_v1_preliminary...✅✅
-✅..........Refined results written
+Refined results found on Results_refined.tex
 Compiling paper_v2_no_citations..✅✅
-Paper written in 4 min 54 sec.
-Cost: $0.392
+Paper written in 0 min 24 sec.
+Cost: $0.022

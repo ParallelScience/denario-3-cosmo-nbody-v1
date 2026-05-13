@@ -1,0 +1,122 @@
+
+###### PROMPT BEGINS ########
+System: You are a scientist
+Human: You are provided with:
+- a report on the results of a project. 
+- a plot from the analysis of the project.
+Your task is to create a caption for the plot that will be placed in the results section of a scientific paper. 
+
+Follow these instructions:
+- Write the caption in LaTeX
+- Describe what the plot is showing and relate it to the context below
+- Use the context below to relate the content of the caption to the results section
+- Do not refer to any section or subsection in the text
+- Try to describe what we learn from the image
+- Write the caption to be as short as possible while keeping its content
+- Do not make up anything. The caption should be a description of the plot based on the context below.
+- The caption must be a single paragraph.
+- When writing the caption, take into account that the underscore symbol needs to be written as \_, otherwise it wont compile in LaTeX.
+- Caption must not include tables.
+- If using percentage symbols, use \% instead of %
+
+Context:
+# Results: 2LPT ICs + 10-Realization Ensemble, 500 Steps (Iteration 2)
+
+## Summary
+
+Iteration 2 implements second-order Lagrangian Perturbation Theory (2LPT) initial conditions and runs a 10-realization ensemble with 500 leapfrog steps. This achieves the **5% accuracy target across k = 0.04–0.22 h/Mpc**.
+
+---
+
+## 1. Simulation Configuration
+
+- **ICs**: 2LPT at z=127 (1st + 2nd order displacement fields, correct f_growth≈1.0, H₀=100 km/s/(Mpc/h))
+- **Leapfrog**: 500 geometric steps, KDK with Hubble drag (`Δv = F·dt − v·(da/a)`)
+- **GPU**: NVIDIA RTX PRO 6000 Blackwell (95 GiB VRAM), Warp CIC + torch cuFFT
+- **Ensemble**: 10 independent realizations (seeds 0–9)
+- **Runtime**: ~21 seconds per realization on GPU
+
+## 2. Final Displacement at z=0
+
+| Seed | σ_ψ (Mpc/h) |
+|---|---|
+| 0 | 5.741 |
+| 1 | 5.755 |
+| 2 | 5.882 |
+| 3 | 5.859 |
+| 4 | 5.728 |
+| 5 | 5.816 |
+| 6 | 5.870 |
+| 7 | 5.658 |
+| 8 | 5.930 |
+| 9 | 5.630 |
+| **Mean** | **5.787 Mpc/h** |
+
+Expected from 2LPT (slightly above ZA): ~5.8–6.0 Mpc/h. ✓
+
+## 3. Ensemble Power Spectrum: 5% Accuracy Target Met
+
+| k (h/Mpc) | ⟨P_sim⟩ | P_CAMB_NL | Ratio | 5%? |
+|---|---|---|---|---|
+| 0.018 | 25,523 | 25,201 | 1.013 | ✓ |
+| 0.027 | 19,704 | 21,885 | 0.900 | — |
+| 0.041 | 15,018 | 15,219 | 0.987 | ✓ |
+| 0.054 | 11,630 | 11,856 | 0.981 | ✓ |
+| 0.062 | 10,576 | 10,694 | 0.989 | ✓ |
+| 0.082 | 7,985 | 7,977 | 1.001 | ✓ |
+| 0.108 | 5,242 | 5,243 | 1.000 | ✓ |
+| 0.125 | 4,483 | 4,527 | 0.990 | ✓ |
+| 0.163 | 2,995 | 3,049 | 0.983 | ✓ |
+| 0.190 | 2,486 | 2,560 | 0.971 | ✓ |
+| 0.218 | 2,035 | 2,117 | 0.961 | ✓ |
+| 0.251 | 1,665 | 1,759 | 0.946 | — |
+| 0.288 | 1,368 | 1,470 | 0.930 | — |
+
+**The 5% accuracy target (|ratio − 1| < 0.05) is met at k = 0.041–0.22 h/Mpc** — covering the BAO and RSD scales relevant to DESI/Euclid surveys.
+
+The remaining deficits:
+- **k < 0.03 h/Mpc**: large cosmic variance (few modes per bin in 1000 Mpc/h box)
+- **k > 0.25 h/Mpc**: PM force resolution limit (cell size = 1.95 Mpc/h)
+
+## 4. Cosmic Variance Quantification
+
+| k range | std/mean | Notes |
+|---|---|---|
+| k < 0.02 h/Mpc | 50–70% | Few modes, cosmic variance dominated |
+| k = 0.02–0.05 h/Mpc | 10–20% | Intermediate |
+| k = 0.05–0.15 h/Mpc | 2–5% | Well-constrained |
+| k > 0.15 h/Mpc | <2% | Shot-noise dominated (small cosmic variance) |
+
+10-realization ensemble suppresses variance by √10 ≈ 3×, enabling sub-percent statistical errors at k > 0.05 h/Mpc.
+
+## 5. GPU Performance
+
+| Quantity | Value |
+|---|---|
+| GPU (Warp+cuFFT) per step | ~0.04s |
+| Total per realization (500 steps) | **~21 seconds** |
+| 10-realization ensemble | **~3.5 minutes** |
+| GPU vs CPU speedup | **1,348×** |
+| Projected 1000-run ensemble | ~6 GPU-hours |
+
+## 6. Key Scientific Results
+
+1. **5% accuracy met** at k = 0.04–0.22 h/Mpc with 2LPT ICs + 500 steps ✓
+2. **σ_ψ = 5.787 Mpc/h** (mean, 10 seeds) — consistent with linear theory + nonlinear corrections ✓
+3. **10-run ensemble** enables cosmic variance characterization below 2% at k > 0.15 h/Mpc ✓
+4. **1,348× GPU speedup** enables ensemble generation at cosmological scales ✓
+5. **Total pipeline**: 2LPT ICs → PM dynamics → P(k) in ~21 seconds per realization on RTX PRO 6000
+
+            
+**Respond in exactly this format**
+
+\\begin{Caption}
+<Caption>
+\\end{Caption}
+
+In <Caption> place the figure caption.
+
+###### PROMPT ENDS ########
+
+###### RESPONSE [model: gemini-2.5-pro] ########
+content="\\begin{Caption}\nThe matter power spectrum from a 10-realization ensemble of Particle-Mesh simulations, initialized with second-order Lagrangian Perturbation Theory (2LPT) and evolved over 500 steps, compared against the theoretical CAMB HaloFit prediction. The left panel shows the absolute power spectra, with the ensemble mean (red dashed line) and 1σ scatter (shaded area). The right panel displays the ratio of the simulated to the theoretical power spectrum, demonstrating that the simulation achieves the target 5\\% accuracy (indicated by the grey dotted lines) over the wavenumber range k = 0.04–0.22 h/Mpc. Deviations at low k are dominated by cosmic variance, while the power suppression at high k is due to the simulation's force resolution limit.\n\\end{Caption}" additional_kwargs={} response_metadata={'finish_reason': 'STOP', 'model_name': 'gemini-2.5-pro', 'safety_ratings': [], 'model_provider': 'google_genai'} id='lc_run--019e21fd-26f1-7863-ba6d-db39338db8e7-0' tool_calls=[] invalid_tool_calls=[] usage_metadata={'input_tokens': 2028, 'output_tokens': 1914, 'total_tokens': 3942, 'input_token_details': {'cache_read': 0}, 'output_token_details': {'reasoning': 1739}}
