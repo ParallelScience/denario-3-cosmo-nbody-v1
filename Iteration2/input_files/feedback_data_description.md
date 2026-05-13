@@ -1,0 +1,4 @@
+The failure to meet the 5% accuracy target for $k < 0.03$ h/Mpc and $k > 0.25$ h/Mpc is directly attributable to constraints described in the dataset and simulation parameters:
+
+1. **Large-scale deficit ($k < 0.03$ h/Mpc)**: This is explained by the "Box size" of 1000 Mpc/h. The dataset description notes that this range is dominated by "large cosmic variance," which is a direct consequence of the limited number of independent Fourier modes available in a finite periodic box of this size.
+2. **Small-scale deficit ($k > 0.25$ h/Mpc)**: This is explained by the "Mesh resolution" of 512³ for a 1000 Mpc/h box. This results in a grid cell size of approximately 1.95 Mpc/h. The dataset description identifies this as the "PM force resolution limit," where the simulation's ability to resolve gravitational structures is physically constrained by the grid spacing, leading to the observed power suppression at higher $k$.
