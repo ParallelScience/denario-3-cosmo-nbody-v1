@@ -1,3 +1,11 @@
+**NOTE: Quijote P(k) Reference Data**
+The Quijote nonlinear P(k) is stored on Globus (not publicly accessible via HTTP). 
+For explicit Quijote comparison, we will:
+(a) Attempt to download their fiducial P(k) from their GitHub summary_statistics if available, 
+(b) If unavailable, use CAMB HaloFit as proxy (well-validated against Quijote fiducial), AND 
+(c) Run 100 realizations of our Warp PM code (the Quijote suite uses 500 fiducial runs), 
+    then compare our ensemble mean against the Quijote mean from their published papers.
+
 1. **Resolution and Force Convergence Study**: Execute simulations using both $512^3$ and $1024^3$ mesh resolutions with a fixed $512^3$ particle set. To isolate the source of power suppression, perform a "force-only" convergence check by comparing the gravitational potential $\phi$ and the force field at a single snapshot between the two resolutions. This distinguishes between artifacts arising from mass assignment (CIC) versus the Poisson solver/gradient calculation.
 
 2. **CIC Window Deconvolution and Theoretical Modeling**: Develop a theoretical PM-prediction model that incorporates the combined CIC window function $W^2(k)$ (accounting for both mass assignment and force interpolation). Apply the inverse window function $W^{-2}(k)$ to the measured density field in Fourier space. This model serves as the "expected" baseline to distinguish between algorithmic PM behavior and implementation errors.
