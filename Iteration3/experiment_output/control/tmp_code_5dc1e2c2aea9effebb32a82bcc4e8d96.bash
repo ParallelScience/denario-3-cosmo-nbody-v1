@@ -1,0 +1,1 @@
+env | grep LD_LIBRARY_PATH && ls -l /usr/local/cuda* && nvidia-smi

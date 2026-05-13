@@ -1,0 +1,122 @@
+{
+    "sub_tasks": [
+        {
+            "bullet_points": [
+                "Use CAMB with Quijote fiducial cosmology (Ωm=0.3175, Ωb=0.049, h=0.6711, ns=0.9624, σ8=0.834) to compute linear P(k) at z_init=127 and z=0",
+                "Generate Zel'dovich Approximation (ZA / first-order LPT) initial conditions at z=127 on a 512³ grid with box size 1000 Mpc/h, fixed random seed=0; note that Quijote uses 2LPT and this difference will be characterized as a known systematic",
+                "Compute ZA displacement and velocity fields; assign velocities using ZA velocity field (∇φ / (aHf)) with f_growth=1.0 at z=127",
+                "Compute CAMB HaloFit nonlinear P(k) at z=0, 0.5, 1, 2 as reference",
+                "Attempt to download Quijote reference P(k) from GitHub URL; fall back to CAMB HaloFit if unavailable",
+                "Save IC particle positions (Mpc/h) and velocities (km/s) as numpy .npz with documented array shapes, linear P(k), and HaloFit P(k) arrays to disk",
+                "Print key statistics: number of particles, box size, grid resolution, RMS displacement, growth factor at z_init"
+            ],
+            "sub_task": "Generate ZA Initial Conditions and CAMB Reference Power Spectra",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Load ICs from Step 1 (.npz format, positions in Mpc/h, velocities in km/s)",
+                "Implement full PM gravity pipeline in NVIDIA Warp: CIC mass assignment to 512³ mesh, FFT-based Poisson solver, gradient computation for forces, leapfrog kick-drift-kick integration with Hubble drag term (Δv = F*dt - v*(da/a))",
+                "Use H0=100 km/s/(Mpc/h) throughout; amplitude normalization N³/sqrt(2V) * sqrt(P_lin(k,z_init))",
+                "Run simulation from z=127 to z=0 with ~200 adaptive time steps (Courant condition)",
+                "Save particle snapshots at z=0, 0.5, 1, 2 as numpy .npz files with positions (Mpc/h), velocities (km/s), scale factor a, and redshift z; print a and z at each saved snapshot to confirm output redshifts match targets",
+                "Record wall-clock time for each step component (CIC, FFT, force interpolation, integration) and total simulation time",
+                "Print timing breakdown and GPU memory usage"
+            ],
+            "sub_task": "Implement and Run GPU PM Simulation (Warp, 512³ mesh)",
+            "sub_task_agent": "engineer",
+            "code_execution_timeout": 1800
+        },
+        {
+            "bullet_points": [
+                "Implement equivalent PM simulation using numpy/scipy (no GPU) with identical physics: CIC mass assignment, FFT Poisson solver, leapfrog with Hubble drag, same cosmology and box parameters",
+                "Load the same ICs from Step 1; run exactly 10 time steps on the full 512³ grid measuring per-step wall-clock time for each component (CIC, FFT, force interpolation, integration)",
+                "Extrapolate total CPU simulation time to the full ~200-step run using the measured per-step average; document and print the extrapolation methodology",
+                "Compute GPU speedup ratios (total and per-component) by comparing with Step 2 timings",
+                "Save all timing results (measured and extrapolated) to disk as a structured file",
+                "Print a detailed timing comparison table with GPU time, CPU time (measured and extrapolated), and speedup ratios per component"
+            ],
+            "sub_task": "Implement CPU Baseline PM Simulation and Benchmark",
+            "sub_task_agent": "engineer",
+            "code_execution_timeout": 1800
+        },
+        {
+            "bullet_points": [
+                "Load particle snapshots at z=0, 0.5, 1, 2 from Step 2 (.npz format)",
+                "Compute matter power spectrum P(k) from each snapshot using CIC mass assignment and FFT, with shot noise subtraction (1/n_bar where n_bar = N_particles/V_box)",
+                "Apply CIC window function deconvolution W^{-2}(k) to correct for mass assignment smoothing; save both raw and deconvolved P(k) arrays",
+                "Bin P(k) in logarithmically spaced k-bins from k_min=2π/L to k_Nyquist; save k-bin center values (h/Mpc) alongside all P(k) arrays, error bars, and mode counts in a single structured .npz file per redshift",
+                "Compute cosmic variance error bars: σ_CV = sqrt(2/N_modes(k)) for each k-bin",
+                "Load CAMB HaloFit reference P(k) and Quijote reference (if available) from Step 1",
+                "Print key statistics: k range, number of modes per bin at representative k values, shot noise level"
+            ],
+            "sub_task": "Compute Power Spectra from GPU Simulation Snapshots",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Run a single PM simulation with 1024³ mesh resolution using the same 512³ particles and same seed=0 ICs from Step 1, using the Warp GPU implementation",
+                "Compute P(k) at z=0 with CIC deconvolution and shot noise subtraction; save k-bin centers and P(k) arrays to disk",
+                "Compare gravitational potential φ and force field at a single snapshot between 512³ and 1024³ mesh to isolate CIC vs Poisson solver artifacts",
+                "Compute the ratio P(k,1024³) / P(k,512³) to quantify resolution convergence",
+                "Save all results to disk",
+                "Print convergence statistics: mean ratio, max deviation, k-scale where >1% difference first appears"
+            ],
+            "sub_task": "Resolution Convergence Study (1024³ mesh)",
+            "sub_task_agent": "engineer",
+            "code_execution_timeout": 1800
+        },
+        {
+            "bullet_points": [
+                "Load pre-computed raw and deconvolved P(k) arrays from Step 4 (do not recompute)",
+                "Compute the theoretical CIC window function W(k) = [sinc(π k_x / (2 k_Nyq))]^2 for the 512³ mesh, and the combined W^2(k) for both mass assignment and force interpolation",
+                "Compute the theoretical PM-expected P(k) = P_HaloFit(k) * W^2(k) as a baseline model showing expected suppression",
+                "Quantify the k-scale where CIC suppression exceeds 1%, 5%, and 10% by comparing W^2(k) to unity",
+                "Save window function arrays and theoretical model P(k) to disk",
+                "Print suppression statistics: k values at 1%, 5%, 10% suppression thresholds"
+            ],
+            "sub_task": "CIC Window Deconvolution Theoretical Modeling and Suppression Quantification",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Load all P(k) arrays, k-bin centers, mode counts, and error bars from Step 4; load reference P(k) from Step 1",
+                "Calculate effective number density n_bar = N_particles / V_box and shot noise P_shot = 1/n_bar; verify consistency with Step 4 subtraction",
+                "For each k-bin, compute N_modes(k) and cosmic variance σ_CV = sqrt(2/N_modes); identify k-bins at low-k (k < 0.03 h/Mpc) where cosmic variance dominates residuals",
+                "Compute the ratio P_warp(k) / P_ref(k) at z=0 with cosmic variance error bars",
+                "Explicitly compute and print: the exact fraction and count of k-bins within 0.01–0.3 h/Mpc satisfying |P_warp/P_ref - 1| < 0.05, and the k-value where the ratio first exceeds 5% deviation",
+                "Save all variance analysis results and ratio arrays to disk"
+            ],
+            "sub_task": "Shot Noise, Variance Analysis, and 5% Compliance Verification",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Load all previously saved arrays from disk (P(k) results from Step 4, timing from Step 3, window functions from Step 6, variance analysis from Step 7, resolution convergence from Step 5); do not recompute anything",
+                "Plot 1 (multi-panel): P(k) at z=0, 0.5, 1, 2 — measured deconvolved P(k) with cosmic variance error bars vs CAMB HaloFit reference, with ratio panels showing P_warp/P_ref and a ±5% tolerance band",
+                "Plot 2 (multi-panel): CIC window function W^2(k), raw vs deconvolved P(k) at z=0, suppression fraction vs k with 1%/5%/10% threshold markers",
+                "Plot 3 (multi-panel): Resolution convergence — P(k,512³) vs P(k,1024³) at z=0, ratio P(1024³)/P(512³) with 1% tolerance band",
+                "Plot 4 (multi-panel): Performance benchmark — per-component timing bar chart (GPU vs CPU), total speedup factor, memory usage comparison",
+                "Plot 5 (multi-panel): Shot noise and variance analysis — P(k) with shot noise level marked, cosmic variance error bars, P_warp/P_ref ratio with 5% tolerance band and k-compliance threshold marked",
+                "All plots saved at dpi>=300 with descriptive filenames including timestamp"
+            ],
+            "sub_task": "Generate All Plots",
+            "sub_task_agent": "engineer"
+        },
+        {
+            "bullet_points": [
+                "Synthesize all quantitative results from Steps 2–8 into a comprehensive Results section suitable for a scientific paper",
+                "Report GPU simulation performance: total wall-clock time, per-component breakdown (CIC, FFT, force interpolation, integration), GPU vs CPU speedup ratios (measured and extrapolated), memory usage",
+                "Report P(k) accuracy at z=0: ratio P_warp/P_ref across full k range, exact fraction and count of k-bins within 5% target for k < 0.3 h/Mpc, k-value where 5% deviation is first exceeded",
+                "Report CIC window deconvolution results: k-scales of 1%/5%/10% suppression, quantitative improvement after deconvolution",
+                "Report resolution convergence: 512³ vs 1024³ comparison, k-scale where >1% difference appears, force field comparison findings",
+                "Report shot noise and cosmic variance analysis: shot noise level, cosmic variance at key k values, statistical significance of low-k residuals",
+                "Include a dedicated subsection that quantitatively separates the ZA-vs-2LPT systematic offset (known IC approximation, largest at high-k and low redshift) from PM force softening and CIC aliasing errors, using the deconvolution and theoretical model results from Steps 6–7",
+                "Reference all plots by their descriptive filenames",
+                "Include all key numerical values with units throughout"
+            ],
+            "sub_task": "Write Full Results Section",
+            "sub_task_agent": "researcher"
+        }
+    ]
+}
