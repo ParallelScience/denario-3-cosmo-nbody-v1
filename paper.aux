@@ -1,7 +1,4 @@
 \relax 
-\citation{Hockney1981}
-\citation{warp2023}
-\citation{Crocce2006}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{}\protected@file@percent }
 \newlabel{sec:intro}{{1}{1}}
 \citation{Hockney1981}
@@ -11,27 +8,32 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Initial conditions}{2}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3}N-body evolution}{2}{}\protected@file@percent }
 \citation{VillaescusaNavarro2020}
-\citation{Takahashi2012}
-\citation{Takahashi2012}
-\citation{Crocce2006}
-\citation{Crocce2006}
+\citation{Springel2005}
+\citation{Springel2005}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Analysis and validation}{3}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {3}Results}{3}{}\protected@file@percent }
 \newlabel{sec:results}{{3}{3}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Computational performance}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Physical validation}{3}{}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Ensemble-averaged matter power spectrum from 10 simulations using 2LPT initial conditions \citep  {Crocce2006}. Top: The mean simulated power spectrum, $\langle P_{\text  {sim}}(k) \rangle $, is compared to the non-linear prediction from CAMB HaloFit, $P_{\text  {CAMB, NL}}(k)$. Bottom: The ratio of the simulated power to the theoretical prediction. The simulation agrees with the theoretical model to within 5\% at large scales ($k < 0.03 \, \text  {h/Mpc}$), while systematically underpredicting power at smaller scales ($k > 0.1 \, \text  {h/Mpc}$).}}{4}{}\protected@file@percent }
-\newlabel{fig:pk_ensemble_mean}{{1}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces The ensemble-averaged matter power spectrum from Figure \ref {fig:pk_ensemble_mean} shown with the $1\sigma $ cosmic variance across the 10 realizations (shaded region). The variance is significant at large scales ($k < 0.05 \, \text  {h/Mpc}$), highlighting the need for an ensemble to obtain a robust measurement of the mean. At smaller scales, the variance becomes negligible compared to the systematic deviation from the theoretical model.}}{4}{}\protected@file@percent }
-\newlabel{fig:pk_ensemble_full}{{2}{4}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Per-step wall-clock profiling of the Warp GPU PM simulation ($N=512^3$, mesh=$512^3$). CIC operations dominate at 85\% of the total cost.}}{3}{}\protected@file@percent }
+\newlabel{tab:profiling}{{1}{3}}
+\citation{Takahashi2012}
+\citation{Crocce2006}
+\citation{Crocce2006}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Performance comparison at $N=512^3$, 500 steps. (i) Fair comparison: same PM algorithm, GPU vs.\ CPU. (ii) Application comparison: Warp PM vs.\ Quijote GADGET-3 TreePM \citep  {Springel2005} on 256 CPU cores.}}{4}{}\protected@file@percent }
+\newlabel{tab:speedup}{{2}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Physical validation}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Conclusions}{4}{}\protected@file@percent }
+\newlabel{sec:conclusions}{{4}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Ensemble-averaged matter power spectrum from 10 simulations using 2LPT initial conditions \citep  {Crocce2006}. Top: The mean simulated power spectrum, $\langle P_{\text  {sim}}(k) \rangle $, is compared to the non-linear prediction from CAMB HaloFit, $P_{\text  {CAMB, NL}}(k)$. Bottom: The ratio of the simulated power to the theoretical prediction. The simulation agrees with the theoretical model to within 5\% at large scales ($k < 0.03 \, \text  {h/Mpc}$), while systematically underpredicting power at smaller scales ($k > 0.1 \, \text  {h/Mpc}$).}}{5}{}\protected@file@percent }
+\newlabel{fig:pk_ensemble_mean}{{1}{5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces The ensemble-averaged matter power spectrum from Figure \ref {fig:pk_ensemble_mean} shown with the $1\sigma $ cosmic variance across the 10 realizations (shaded region). The variance is significant at large scales ($k < 0.05 \, \text  {h/Mpc}$), highlighting the need for an ensemble to obtain a robust measurement of the mean. At smaller scales, the variance becomes negligible compared to the systematic deviation from the theoretical model.}}{5}{}\protected@file@percent }
+\newlabel{fig:pk_ensemble_full}{{2}{5}}
 \bibdata{bibliography}
 \bibcite{Hockney1981}{{1}{}{{}}{{}}}
-\bibcite{warp2023}{{2}{}{{}}{{}}}
-\bibcite{Crocce2006}{{3}{}{{}}{{}}}
-\bibcite{VillaescusaNavarro2020}{{4}{}{{}}{{}}}
-\bibcite{Takahashi2012}{{5}{}{{}}{{}}}
+\bibcite{VillaescusaNavarro2020}{{2}{}{{}}{{}}}
+\bibcite{Springel2005}{{3}{}{{}}{{}}}
+\bibcite{Takahashi2012}{{4}{}{{}}{{}}}
+\bibcite{Crocce2006}{{5}{}{{}}{{}}}
 \bibstyle{unsrt}
 \providecommand\NAT@force@numbers{}\NAT@force@numbers
-\@writefile{toc}{\contentsline {section}{\numberline {4}Conclusions}{5}{}\protected@file@percent }
-\newlabel{sec:conclusions}{{4}{5}}
-\gdef \@abspage@last{5}
+\gdef \@abspage@last{6}

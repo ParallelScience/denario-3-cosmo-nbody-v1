@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Debian) (preloaded format=pdflatex 2026.4.29)  13 MAY 2026 16:33
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Debian) (preloaded format=pdflatex 2026.4.29)  14 MAY 2026 09:03
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -254,57 +254,64 @@ e
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2]
-<Iteration1/input_files/plots/density.png, id=20, 914.4564pt x 427.3566pt>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[3]
+<Iteration1/input_files/plots/density.png, id=26, 914.4564pt x 427.3566pt>
 File: Iteration1/input_files/plots/density.png Graphic file (type png)
 <use Iteration1/input_files/plots/density.png>
 Package pdftex.def Info: Iteration1/input_files/plots/density.png  used on inpu
-t line 86.
+t line 130.
 (pdftex.def)             Requested size: 469.75502pt x 219.53355pt.
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-[3]
-<Iteration2/input_files/plots/pk_500steps.png, id=26, 931.3194pt x 351.2322pt>
+<Iteration2/input_files/plots/pk_500steps.png, id=28, 931.3194pt x 351.2322pt>
 File: Iteration2/input_files/plots/pk_500steps.png Graphic file (type png)
 <use Iteration2/input_files/plots/pk_500steps.png>
 Package pdftex.def Info: Iteration2/input_files/plots/pk_500steps.png  used on 
-input line 95.
+input line 139.
 (pdftex.def)             Requested size: 469.75502pt x 177.15916pt.
- [4 <./Iteration1/input_files/plots/density.png> <./Iteration2/input_files/plot
-s/pk_500steps.png>]
-Overfull \hbox (0.72957pt too wide) in paragraph at lines 106--107
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+
+Overfull \hbox (0.72957pt too wide) in paragraph at lines 150--151
 []\OT1/cmr/m/n/10 We con-ducted an en-sem-ble of ten in-de-pen-dent sim-u-la-ti
 ons, each evolv-ing $512[]$ par-ti-cles in a $(1000 []\OML/cmm/m/it/10 =h\OT1/c
 mr/m/n/10 )[]$
  []
 
-(./paper.bbl) [5] (./paper.aux) ) 
+[4] [5 <./Iteration1/input_files/plots/density.png> <./Iteration2/input_files/p
+lots/pk_500steps.png>] (./paper.bbl) [6] (./paper.aux) ) 
 Here is how much of TeX's memory you used:
- 3189 strings out of 477975
- 48876 string characters out of 5839281
- 1863330 words of memory out of 5000000
- 23309 multiletter control sequences out of 15000+600000
- 519153 words of font info for 56 fonts, out of 8000000 for 9000
+ 3193 strings out of 477975
+ 48937 string characters out of 5839281
+ 1865330 words of memory out of 5000000
+ 23312 multiletter control sequences out of 15000+600000
+ 519461 words of font info for 57 fonts, out of 8000000 for 9000
  59 hyphenation exceptions out of 8191
- 57i,9n,62p,1470b,235s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texlive/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmbx9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmm
-i7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb>
-</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/s
-hare/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/te
-xlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/pu
-blic/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmti10.pfb>
-Output written on paper.pdf (5 pages, 471692 bytes).
+ 57i,9n,62p,1451b,248s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texlive/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/font
+s/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/texlive/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/
+cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.p
+fb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></us
+r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/
+texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmti10.pfb>
+Output written on paper.pdf (6 pages, 491805 bytes).
 PDF statistics:
- 90 PDF objects out of 1000 (max. 8388607)
- 52 compressed objects within 1 object stream
+ 98 PDF objects out of 1000 (max. 8388607)
+ 57 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  11 words of extra memory for PDF output out of 10000 (max. 10000000)
 

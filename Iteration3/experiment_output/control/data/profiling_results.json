@@ -1,0 +1,17 @@
+{
+  "n_particles": 134217728,
+  "n_mesh": 512,
+  "n_steps": 500,
+  "per_step_s": {
+    "CIC mass assignment": 0.12709678477840497,
+    "FFT Poisson solver": 0.033652090141549705,
+    "Force interpolation": 0.12724748675245792,
+    "Leapfrog kick+drag": 0.00840183555847034,
+    "Leapfrog drift+BC": 0.004333237744867801
+  },
+  "total_per_step_s": 0.3007314349757508,
+  "total_500step_s": 150.3657174878754,
+  "quijote_wall_h": 3.5,
+  "quijote_cores": 256,
+  "wall_speedup": 83.79569632297328
+}
